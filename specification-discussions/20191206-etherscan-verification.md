@@ -2,10 +2,6 @@
 
 Aim of the tool is to automate and verify contracts on Etherscan (mainnet, Ropsten and Goerli).
 
-## API Credentials
-- Email: review@ost.com
-- Etherscan API key: T6C4VUT8TW5QWTH71W3MIA66D9PDKMCT63
-
 ## Tool to automate etherscan verification
 
 We should create tool/script which should automate verification of contracts on etherscan.
@@ -20,10 +16,10 @@ We should create tool/script which should automate verification of contracts on 
     - <b>contractName</b>: Contract which is to be verified on etherscan.
     - <b>contractAddress</b>: Contract address to verify.
     - <b>contractCreationTxHash</b>: Contract's creation transaction hash.
-    
+
 - Pre-requisite
-    - npm `verify-on-etherscan` should be installed. Checkout [more details] (https://github.com/gnosis/verify-on-etherscan#as-a-cli-utility) about the npm. 
-    
+    - npm `verify-on-etherscan` should be installed. Checkout [more details] (https://github.com/gnosis/verify-on-etherscan#as-a-cli-utility) about the npm.
+
 - Description
     - The tool will clone the given github release/tag repository.
     - `truffle compile` needs to run. This will populate compiled contract build files in contract/build directory.
