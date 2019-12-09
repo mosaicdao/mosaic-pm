@@ -54,6 +54,7 @@ contract MasterCopyUpgradable {
 
 contract GenesisProtocore {
     /* Storage */
+    address genesisCoConsensus;
     bytes32 genesisMetachainId;
     address genesisCore;
     uint256 genesisEpochLength,
@@ -69,8 +70,9 @@ contract GenesisProtocore {
 such that as an example the storage for `Protocore` proxy should be written in the `GenesisFile` as
 ```
 slot 00: 00..004dfc
-slot 01: <metachaindId>
-slot 02: <core>
+slot 01: 00..004d00
+slot 02: <metachaindId>
+slot 03: <core>
 slot 03: ...
 ```
 All proxies must then be written such that functions can only be called if the genesis parameters have been processed, eg. for `Protocore`
