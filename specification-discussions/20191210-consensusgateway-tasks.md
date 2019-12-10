@@ -85,7 +85,9 @@
         function setup(
             bytes32 _metachainId,
             address _consensus,
-            address _consensusCogateway
+            address _consensusCogateway,
+            uint8 _outboxStorageIndex,
+            uint256 _maxStorageRootItems
         ) 
             external
         ```
@@ -103,8 +105,18 @@
                 address(this)
             );
             ```
-3. A function to declare open kernel. (Dependend on ConsensusGateway.1 and Core.1)
-
+        - Call setup function of `MessageInbox`
+        
+            ```
+            MessageInbox.setupMessageInbox(
+                _metachainId,
+                _consensusCogateway,
+                _outboxStorageIndex,
+                _maxStorageRootItems,
+                address(this)
+            );
+            ```    
+3. A function to declare open kernel.
     
     ```
     function declareOpenKernel(CoreI _core, uint256 _feeGasPrice, uint256 _feeGasLimit)
@@ -116,14 +128,14 @@
     - Pass core contract address as param.
     - Assert that `_core` address is not zero.
     - Get `openKernelHeight`, `openKernelHash` from Core.
-        - Here we get all the required values from core contract in one call instead of 4.
+        - Here we get all the required values from core contract in one call instead of 2.
         ```
          (height, kernelHash) = core.getOpenKernel()
         ```
-    - The `height` can be equal to `currentMetablockHeight` or `currentMetablockHeight + 1`. We should allow equal height, incase of chain halting when new core is created, then the new kernel can be opened at the same height. As this function can be called only by consensus, we can trust that same height will not be passed in normal conditions.
-    - Update `currentMetablockHeight = height;`
-    - Create `kernelIntentHash`. It is sha3(height, kernelHash)
-    - Increament `nonce` for the caller(from nonces mapping).
+    - The `height` can be equal to `currentMetablockHeight` or `currentMetablockHeight + 1`. We should allow equal height, in case of chain halting when new core is created, then the new kernel can be opened at the same height. As this function can be called only by consensus, we can trust that same height will not be passed in normal conditions. (Used for recovering from halted Core, then new Core can resume at same KernelHeight)
+    - Set `currentMetablockHeight = height;`
+    - Create `kernelIntentHash`. It is EIP712(height, kernelHash)
+    - Increament `nonce` for the caller(from nonces mapping); FIRST NONCE = 0.
     - Call `MessageOutbox.declareMessage` with the following params.
         - kernelIntentHash
         - nonce
@@ -131,7 +143,7 @@
         - _feeGasLimit
         - msg.sender for sender
 
-4. A function to deposit MOST token on the origin chain  and mint utMOST token on the auxiliary chain.
+4. A function to deposit MOST on the origin chain and mint utMOST on the auxiliary chain.
     ```
     function deposit(
         uint256 _amount,
@@ -140,34 +152,36 @@
         uint256 _feeGasLimit,
     )
     ``` 
-    - Anyone can all this function to deposit MOST token.
+    - Anyone can all this function to deposit MOST.
     - Validate input params.
-    - Check if reward is possible with given input params amount, gasprice and gaslimit. If the reward is not possible then revert.
-    - Create `depositIntentHash`. Call `ConsensusGatewayBase::hashStateIntent` to get the `depositIntentHash`.
-    - Increament `nonce` for the caller(from nonces mapping).
+    - Check if reward is possible with given input params amount, _feeGasPrice and _feeGasLimit. If the reward is not possible then revert.
+    - Generate `depositIntentHash`. Call `ERC20GatewayBase::hashDepositIntent` to get the `depositIntentHash`.
+    - Increament `nonce` for the caller(from nonces mapping). Nonce must start from 0
     - Call `MessageOutbox.declareMessage` with the following params.
         - depositIntentHash
         - nonce
-        - gasPrice
-        - gasLimit
-        - address(msg.sender i.e depositor)
-    - Transfer `_amount` number of the MOST token from `address(msg.sender)` to ConsensusGateway `address(this)`
-    - TODO: Discuss if any events is needed here.
+        - _feeGasPrice
+        - _feeGasLimit
+        - address(msg.sender) i.e depositor
+    - Transfer `_amount` number of the MOST from `address(msg.sender)` to ConsensusGateway `address(this)`.
+## GenesisConsensusCogateway
+TODO: https://github.com/mosaicdao/mosaic-pm/blob/master/specification-discussions/20191209-genesis-contracts.md
+## ConsensusCogateway
 
-
-    
-## ConsensusCoGateway: ((dependent on ConsensusGatewayBase, Anchor.1))
-
-1. ConsensusCoGatway constract
+1. ConsensusCogatway contract
     - This should follow proxy pattern.
-        - `contract ConsensusCoGateway is MasterCopyNonUpgradable, MessageInbox, ConsensusGatewayBase`
+        - `contract ConsensusCogateway is MasterCopyNonUpgradable, GenesisConsensusCogateway, MessageBus, ConsensusGatewayBase, ERC20GatewayBase`
     - Possible variables for this contracts.
         - Define a constant for storage index of message box outbox mapping.
-            - `uint8 constant public INBOX_OFFSET = 1;`
+            - `uint8 constant public INBOX_OFFSET = <Identify the index>;`
+            - `uint8 constant public INBOX_OFFSET = <Identify the index>;`
             - `ProtoCoreI public protocore;`
-            - `mapping(uint256/*height*/ => bytes32/*kernelHash*/) kernelHashes;`
-        - `MasterCopyNonUpgradable` should be at location 0.
-        - `MessageInbox` should be always at location 1.
+            - `mapping(uint256 /*metablock height*/ => bytes32 /*kernel hash*/) kernelHashes;`
+        - `MasterCopyNonUpgradable` should be at inclusionIndex 0.
+        - `GenesisConsensusCogateway` should be at inclusionIndex 1.
+        - `MessageBus` should be always at inclusionIndex 2.
+
+    TODO: Make it consistent with ConsensusGateway::setup.
 
     - **Setup function.**
         ```
@@ -187,7 +201,7 @@
                 _coConsensus
             );
             ```
-        - Get `anchor` address from `CoConsensus` contract.        
+        - Get `anchor` address from `CoConsensus` contract.
         - Call setup function of `MessageOutbox`
         
         ```
@@ -219,7 +233,7 @@
 3. Confirm open kernel declared on auxiliary chain.
     ```
      function confirmOpenKernel(
-        uint256 _height,
+        uint256 _kernelHeight,
         bytes32 _kernelHash,
         uint256 _feeGasPrice,
         uint256 _feeGasLimit,
@@ -232,10 +246,10 @@
 
     ```
     
-    - Check if the `_height` - `currentMetablockHeight` <=1
-    - Update `currentMetablockHeight`. `currentMetablockHeight = height;`
-    - Create `kernelIntentHash` with params `(_height, _kernelHash);`
-    - Increase the nonce count for the `sender` address
+    - Check if the `_kernelHeight` - `currentMetablockHeight` = 1
+    - Update `currentMetablockHeight`. `currentMetablockHeight = _kernelHeight;`
+    - Create `kernelIntentHash` with params `(_kernelHeight, _kernelHash);`
+    - Increase the nonce count for the `sender` address. Nonce should start from zero.
     - Call confirm message on MessageInbox.
             ```
                 messageHash_ = MessageInbox.confirmMessage(
@@ -248,7 +262,8 @@
                     _rlpParentNodes
                 );
             ```
-    - Update the mapping `kernelHashes`
+    - Update the mapping `kernelHashes`.
+    
 4. Confirm deposit on auxiliary chain.
     ```
     function confirmDeposit(
@@ -266,9 +281,9 @@
     
     - Get the initial gas amount. `initialGas = gasleft();`. Intention here is to record the gas used in this function call. This gas used will be used for reward calculations.
     - Add validations for input params.
-    - Check if reward is possible with given amount, gasprice and gaslimit. If reward is not possible then revert.
-    - Increament the nonce for the sender address.
-    - Create `depositIntentHash`. Call `ConsensusGatewayBase::hashStateIntent` to get the `depositIntentHash`.
+    - ~~Check if reward is possible with given amount, gasprice and gaslimit. If reward is not possible then revert.~~
+    - Increament the nonce for the sender address. Nonce starts from zero.
+    - Generate `depositIntentHash`. Call `ERC20GatewayBase::hashDepositIntent` to get the `depositIntentHash`.
     - Call confirm message in MessageInbox.
         - ```
             messageHash_ = MessageInbox.confirmMessage(
@@ -295,30 +310,31 @@ Any DApp developer can deploy a custom Gateway for their DApp (or reuse the exis
 1. Function to commit meta block.
     ```
     function commitMetablock(
-        bytes32 _parentKernelHash,
-        uint256 _height,
+        bytes32 _parentVoteMessageHash,
+        uint256 _openedKernelHeight,
         address[] _updatedValidators,
         uint256[] _updatedReputation,
         uint256 _gasTarget
     ) external 
     ```
-   - Create the kernel hash from the given inputs.
-   - Check the generated kernel hash is equal to the `consensusCoGateway::getKernelHash(height);`
-   - Check if the `openKernelHash` and `openKernelHeight` is equalt to `_parentKernelHash` and `_height-1`.
-       - ```
-         (parentKernelHeight, parentKernelHash) = protoCore.openKernel();
-         ```
+   - Create the `kernelHash` from the given inputs.
+   - Check the generated kernel hash is equal to the `consensusCogateway::getKernelHash(_openedKernelHeight);`.
+   - Call `protocore::commitSourceCheckpoint(_parentVoteMessageHash)`
    - Loop through `_updatedValidators` array.
        - ```
-           if(reputation::upsert(validator, reputation)) {
-               protocore.join(validator)
-           }
-           
            if(reputation == 0) {
                protocore.logout(validator)
            }
-         ```
-    - Call `protocore::openMetablock(height, parentKernelHash, openKernelHash, gasTarget)``
+           else(
+               new = reputation::upsert(validator, reputation))
+               if new {
+                   protocore.join(validator)
+               }
+           }
+           
+           
+           
+         ```    
 
         
 TODO: make a task.
