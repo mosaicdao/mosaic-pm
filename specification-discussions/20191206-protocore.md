@@ -1,4 +1,4 @@
-# Mosaic Implementation Discussion
+# Mosaic Implementation Discussion: Protocore
 
 | version | Last updated | Component          |
 | ------- | ------------ | ------------------ |

@@ -1,3 +1,60 @@
+# Mosaic Implementation Discussion: Consensus
+
+| version | Last updated | Component          |
+| ------- | ------------ | ------------------ |
+| 0.14    | 10/12/2019   | Consensus contract |
+
+Editor: Benjamin Bollen
+
+## Contract architecture
+![](https://i.imgur.com/pxra0Gn.jpg)
+
+## Overview
+
+`Consensus` on Ethereum mainnet is the pivotal contract that governs the set of metablockchain. It is a Byzantine Fault-Tolerant (BFT) consensus engine which precommits and commits metablocks in two rounds. A metablockchain cannot fork.
+
+`Consensus` has three types of `ConsensusModule`s: `Core`, `Committee` and `Reputation`.
+
+## Contract summary
+
+```js
+contract Consensus is MasterCopyUpgradable, ... {
+
+    enum MetablockRound {
+        Undefined,
+        Precommitted,
+        CommitteeFormed,
+        CommitteeDecided,
+        Committed
+    }
+
+    struct Metablock {
+        bytes32 metablockHash;
+        MetablockRound round;
+        uint256 roundBlockNumber;
+    }
+
+    mapping(bytes32 /* metachain id */ =>
+        mapping(uint256 /* metablock height */ => Metablock)) metablockchains;
+
+    mapping(bytes32 /* metachain id */ => uint256 /* tip */) metablockTips;
+
+    mapping(bytes32 /* metachain id */ => AnchorI) anchors;
+
+    mapping(bytes32 /* metachain id */ => CoreI) assignments;
+
+    mapping(bytes32 /* metablock hash */ => CommitteeI) committees;
+
+    mapping(bytes32 /* metablock hash */ => bytes32 /* decision */) decisions;
+
+    mapping(CoreI => CoreLifetime) CoreLifetimes;
+
+    [...]
+}
+```
+
+** **
+
 # **ConsensusGateway (Kernel Gateway)**
 
 If we can write all the state to the genesis file, then
@@ -25,7 +82,7 @@ In Core the Core status is tracked
 ```
 
 1. TechGov calls `axiom:newMetachain()`, no params needed. `metachainId = [12bytes type, 20 bytes address of anchor proxy]`
-    
+
 ```
 CoreLifetime:Undefined for metachainId(<Anchor>)
 ```
@@ -62,7 +119,7 @@ and the `Kernel` can be declared as open in the `ConsensusGateway` by calling fr
         [msg.sender = Consensus]
         (height, kernelHash) = core.openKernel()
         DeclareMessage(OpenKernel(height, kernelHash))
-    
+
     note: metachainId should be included in the domainSeparator
 ```
 In consensus CoreLifetime ~~remains `Creation`~~ is set to `Genesis` on declaring the Kernel in ConsensusGateway. [ping @sarvesh]
@@ -82,9 +139,9 @@ The Genesis file stores the following:
 
 Once the validators generate the genesis file, they can start the node and publish the enode enpoint.
 
-Validators can call `Consensus::publishEndpoint(string _service, string _endpoint)`. This value is emitted in an Event `PublishEndpoint(validator, core, service, endpoint)`. 
+Validators can call `Consensus::publishEndpoint(string _service, string _endpoint)`. This value is emitted in an Event `PublishEndpoint(validator, core, service, endpoint)`.
 
-Validators can read the logs to get the peers and start syncing. 
+Validators can read the logs to get the peers and start syncing.
 
 mOST and UTmOST
 
@@ -95,13 +152,13 @@ ____
 ## Tasks:
 1. Axiom contract: Make `maxStateRoots` as constant like `EPOCH_LENGTH` in Consensus.
 2. `Axiom::newMetachain()` no params in the function.
-3. In `Axiom::newMetachain()` create parent hash. Create it as `[typebytes, core address]`. 
+3. In `Axiom::newMetachain()` create parent hash. Create it as `[typebytes, core address]`.
 (Example of Typebytes as per EIP191. `0x19 <1 byte version> <version specific data> <data to sign>.` 0x19 0x4d(M))
 4. Compare [CID](https://github.com/multiformats/cid) and [EIP191](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-191.md) to use it for `typebytes`
 5. Remove `committedSource` from storage for `Core.sol`.
 // 6. Remove `assertPrecommit` from `Core.sol`.
 7. Remove `assertPrecommit` call from `Core::openMetablock` in `Core.sol`. (Pro)
-8. Deploy `ConsensusGateway` in `Consesus::newMetachain` 
+8. Deploy `ConsensusGateway` in `Consesus::newMetachain`
 9. Validators Stake amount while joining the Core.
 10. Reputation.isActive() issue
 11. Reputation.publishEndpoint()
@@ -120,15 +177,15 @@ ____
 
 ## Tickets:
 
-1. Remove the constant `EPOCH_LENGTH` from `Axiom` contract. Add it in `Consensus` contract. Add a constant `MAX_STATE_ROOTS` in `Consensus` contract. 
+1. Remove the constant `EPOCH_LENGTH` from `Axiom` contract. Add it in `Consensus` contract. Add a constant `MAX_STATE_ROOTS` in `Consensus` contract.
 2. Change chainId to metachainId.
-    - logic for metachainId creation is 
+    - logic for metachainId creation is
     `metachainId = hash(0x19 0x4d mosaicDomainSeparator metachainIdTypehash)`
     - 0x4d = "M" for Mosaic
     - mosaicDomainSeparator = "MosaicDomain(string name,string version,uint256 originChainId,address consensus)"<name><version><originChainId><consensus>
     - typeHash "MetachainId(address anchor)"<anchor>
 3. Convert Anchor contract to proxy pattern. (Sarvesh)
-4. Update the `Axiom` constructor to include Anchor master copy. 
+4. Update the `Axiom` constructor to include Anchor master copy.
     - Create a new function `deployMetachainProxies` in Axiom that can do the following.
         - Deploy anchor proxy contract.
         - Deploy core proxy contract.
@@ -139,9 +196,9 @@ ____
     - Call `consensus.newMetaChain`.
     - Get the `metachainId` as the return value of `consensus.newMetaChain`
     - Emit an event `MetachainCreated`
-7. Introduce core lifetime 
+7. Introduce core lifetime
     - Add `CoreLifetime` mapping in `Consensus` contract
-    - Define `CoreLifetime` enum with the following states 
+    - Define `CoreLifetime` enum with the following states
         - CoreLifetime:Undefined
         - CoreLifetime:Halted
         - CoreLifetime:Corrupted
@@ -149,7 +206,7 @@ ____
         - CoreLifetime:Genesis
         - CoreLifetime:Active
 9. Refactor Consensus::newMetachain
-    - Add a new mapping `consensusGateways` (metachainId bytes32 -> consensusGateway address)    
+    - Add a new mapping `consensusGateways` (metachainId bytes32 -> consensusGateway address)
     - Call `Axiom::deployMetachainProxies`
     - Generate `metachainId`.
     - Update the `CoreLifetime` status to `Creation`
@@ -173,7 +230,7 @@ ____
     - Change the `CoreStatus` to `Created`.
 
 13. Refactor Consensus::JoinDuringCreation.
-    - Update the params of `Consensus::joinDuringCreation`. 
+    - Update the params of `Consensus::joinDuringCreation`.
         - `joinDuringCreation(bytes32 _metachainId, address _withdrawalAddress)`.
     - Add a require/modifier that the value of `CoreLifetime` should be `Creation`.
     - ~~Add a require to verify that the validator has declared a stake message in `ConsensusGateway`~~.
@@ -182,7 +239,7 @@ ____
     - Call `reputation.register`~~join~~.
     - Call `core.joinDuringCreation(msg.sender)`.
     - if the `core.joinDuringCreation(msg.sender)` returns true, then call `ConsensusGateway.declareKernelOpened(core)`.
-    
+
 14. Refactor Core::joinDuringCreation
     - Add `rootOriginObservationBlockHeight` variable.
     - Add a boolean return type, the value is true when the coreStatus is opened.
@@ -210,7 +267,7 @@ ____
 {
   "number": "0x0",
   "config": {
-    "chainId": < metachainid >, 
+    "chainId": < metachainid >,
     "homesteadBlock": 0,
     "eip150Block": 0,
     "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -233,7 +290,7 @@ ____
   "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "coinbase": "0x0000000000000000000000000000000000000000",
   "alloc": {
-    "0000000000000000000000000000000000000000": {      
+    "0000000000000000000000000000000000000000": {
       "balance": "< very large number >",
       "code": "0xcodeofUTmOST",
       "nonce": "1",
@@ -259,9 +316,9 @@ ____
   },
   "gasUsed": "0x0",
   "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
-}        
+}
 ```
-    
+
 17. mOST token/interface (burn/mint).
     - task for D+B
 18. UTmOST token.
@@ -274,8 +331,8 @@ ____
 22. Readability improvement for consensus. Split the contract in to few logical parts and include it in Consensus contract
 23. MetahashChain. (Pro)
     https://github.com/mosaicdao/mosaic-1/issues/92
-    
-    In consensus contract, 
+
+    In consensus contract,
     - Add a new mapping metahashChain(uint256 metablockNumber -> MetaBlockHeader)
     ```
         struct MetablockConsensus {
@@ -283,13 +340,13 @@ ____
             uint256 roundBlockNumber;
             MetablockRound round;
         }
-                
+
         enum MetablockRound {
             Undefined,
             Precommitted,
             CommitteeFormed,
             CommitteeDecided,
-            Committed,            
+            Committed,
         }
     ```
     - Update the mapping when `precommitMetablock`
@@ -312,7 +369,7 @@ Following are the core state. A new state `KernelCreated` is proposed here.
     - Validators can join when core is at this state.
     - While joining, validators stake amount on the origin chain contract so that they can get the base token in the aux chain. (Message Declaration).
     - Core can move to next state only after the `minValidators` is reached. Wait for `'n'` blocks before moving to next state. This is because we can include the origin block header. So that declared messages can be proved in the aux chain.
-    - After `'n'` blocks from the quorum is reached. 
+    - After `'n'` blocks from the quorum is reached.
         - Anyone can call the `Core::createKernel`.
         - Provide origin block header. And the proof data of message declaration of validators stake. It should be in latest `256` blocks so that the hash can be verified in the contract.
         - This block header and proof data is stored in the Genesis contract.
@@ -326,7 +383,7 @@ Following are the core state. A new state `KernelCreated` is proposed here.
     - Provide the stateroot of `n`th block along with `enode://` in core contract.
     - When the 2/3rd quorum is reached for the stateroot. Open the kernel. `Core::Open`
     - Commit this stateRoot and block height in anchor.
-    - Core status is changed to `Opened`. 
+    - Core status is changed to `Opened`.
 6. **Opened.**
     - Now the validators can start the nodes by connecting to the boot nodes.
 8. Precommitted.
@@ -342,7 +399,7 @@ Move the following things from the origin chain to auxiliary chain
 - ConsensusGateway address
 - ERC20Gateway address
 - Origin chain block height and block hash. Validators will starts Casper FFG from this block height.
- 
+
 Fund the validators (Stake the equivalent amount in the origin chain)
 
 Once the above information is available in the auxiliary chain
@@ -384,7 +441,7 @@ Following things happen in this call:
 - A new Core (proxy) is deployed.
 - A new ConsensusGateway (proxy) is deployed.
 - A new ERC20Gateway (proxy) is deployed.
-- A new Genesis contract (proxy) is deployed. All the initial information like god facilitator address, sealer address, validator fund amount, god facilitator amount, ERC20Gateway address,  ConsensusGateway address, etc are set in the Genesis contract. 
+- A new Genesis contract (proxy) is deployed. All the initial information like god facilitator address, sealer address, validator fund amount, god facilitator amount, ERC20Gateway address,  ConsensusGateway address, etc are set in the Genesis contract.
 - All the necessary assignments related to core, anchor, genesis, etc and bookkeeping are done in the consensus contract.
 
 **Please note**: The Genesis contract is not yet for genesis file creation, there will be some modifier that will now allow any calls for genesis file creation yet.
@@ -444,21 +501,21 @@ This will do the following:
 - Initialize the ProtoCore with initial Kernel data.
 
 Now the validators can start the Casper FFG.
-Validators will start observing the origin chain from the block number and block hash that was provided in the genesis. 
+Validators will start observing the origin chain from the block number and block hash that was provided in the genesis.
 
 
-## 
+##
 Below is the Previous discussion
 
 # Iteration 1
 
 This document explains an option on how to create a new metachain.
 
-**Assumption:** 
+**Assumption:**
 The auxiliary chains will run on the latest Istanbul fork. So that we can take advantage of `chainid` opcode (explained later in the section).
 
 **Mosaic contracts:**
-The following are the mosaic contracts and external addresses in the mosaic. 
+The following are the mosaic contracts and external addresses in the mosaic.
 
 **Origin chain:**
 1. Axiom (contract)
@@ -469,7 +526,7 @@ The following are the mosaic contracts and external addresses in the mosaic.
 6. ConsensusGateway/KernelGateway (contract)
 7. TechGov (address)
 
-**Auxiliary chain:** 
+**Auxiliary chain:**
 In auxiliary chain the contracts are created in `Geneis block`.
 1. CoConsensusGateway/CoKernelGateway (MasterCopy contract) at `0x0000000000000000000000000000000000001111)`
 2. CoConsensus (MasterCopy contract) at `0x0000000000000000000000000000000000001112`
@@ -483,7 +540,7 @@ In auxiliary chain the contracts are created in `Geneis block`.
 
 
 **Creating a new metachain:**
-A new metachain can be created by `TechGov` by calling `Axiom::newMetaChain`. 
+A new metachain can be created by `TechGov` by calling `Axiom::newMetaChain`.
 Provide the following params `_maxStateRoots`, `_rootRlpBlockHeader` and `_godFacilitator`.
 - `_maxStateRoots` and `_rootRlpBlockHeader` are used for deploying a new anchor contract and core contract.
 - `_godFacilitator` this address will be funded in the auxiliary chain so that it can make transactions and do the setup and initializations.
@@ -506,12 +563,12 @@ There will be few things but not including it in this document.
         - God facilitator address.
         - _rootRlpBlockHeader
         ...
-        ... 
+        ...
         ...
     This will look something like this
     `0x00000000000000000000000000000000000000ffbe160df334bb721e432790696ca8c8748c2522e300000000000000000000000000000000000000ee......`
-    
-- Store this bytes in Consensus contract mapping. 
+
+- Store this bytes in Consensus contract mapping.
     `mapping(bytes32 /*chain_id*/ => bytes ) public genesisMetaChainInfo`
 - Declare a new message in consensusGateway with `newMetaChainIntent`. The hash of this `Consensus::genesisMetaChainInfo[chain_id]` is used, so that all the data in the address can be proved.
 
@@ -560,7 +617,7 @@ The genesis file will have the code for the predetermined address and the alloc 
       "code": "0xCoAxiom"
     },
     "0xGOD_FACILITATOR": {
-      "balance": "0x1", // Actual value to be determined.      
+      "balance": "0x1", // Actual value to be determined.
     },
   },
 ```
@@ -571,7 +628,7 @@ The contracts will be deployed in the genesis block.
 
 **Setup auxiliary chain:**
 
-GodFacilitator address now has the balance from genesis block it can be used for setup and initialization 
+GodFacilitator address now has the balance from genesis block it can be used for setup and initialization
 
 Here we need to do the following:
 1. Initialize by calling `CoAxiom.initMetaChain(consensensGatewayAccountProof)
@@ -582,15 +639,15 @@ Here we need to do the following:
     - Store the storage proof.
     - **get the chainid using the opcode and check if its equal to the anchor address.**
 
-2. Activate the auxiliary chain by providing the storage proof for the declared message in the `ConsensusGateway/KernelGateway` address. 
+2. Activate the auxiliary chain by providing the storage proof for the declared message in the `ConsensusGateway/KernelGateway` address.
 
 3. The EIPTokenGateway/MessageBus can also be set up in these steps by providing required data in the `MetaChainData`. As all the data in the `0x0000000000000000000000000000000000001115` is proved in the auxiliary chain, it will be simple to set up the EIP20Gateway for the basetoken.
 
 The GodFacilitator can be used to provide the basetoken to facilitators.
 
-Once the auxiliary chain is activated and facilitators are up the validators not can mint the token in order to participate. 
+Once the auxiliary chain is activated and facilitators are up the validators not can mint the token in order to participate.
 
 
 
 
-All the following flow can be done in Mosaic-chains. 
+All the following flow can be done in Mosaic-chains.
