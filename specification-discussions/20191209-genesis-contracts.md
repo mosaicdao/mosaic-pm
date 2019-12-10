@@ -1,4 +1,4 @@
-# Mosaic Implementation Discussion
+# Mosaic Implementation Discussion: Genesis contracts
 
 | version | Last updated | Component          |
 | ------- | ------------ | ------------------ |
@@ -81,7 +81,7 @@ All proxies must then be written such that functions can only be called if the g
 contract Protocore is MasterCopyUpgradable, GenesisProtocore, ... {
     [...]
 
-    function registerVoteMessage() {
+    function registerGenesisVoteMessage() {
         // initialise root vote message from genesis parameters
     }
 

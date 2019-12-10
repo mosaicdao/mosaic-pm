@@ -52,7 +52,7 @@ struct Link {
 
 ## Finalisation status of target checkpoints
 
-### Proposed function signatures and summary
+## Proposed function signatures and summary
 
 `Protocore` knows about `Link`s and `Validator`s who can vote on these links. Links become supermajority links under certain conditions specified later.
 
