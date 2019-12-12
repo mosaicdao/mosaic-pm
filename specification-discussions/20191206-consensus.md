@@ -15,7 +15,7 @@ Editor: Benjamin Bollen
 
 `Consensus` has three types of `ConsensusModule`s: `Core`, `Committee` and `Reputation`.
 
-## Contract summary
+## Consensus rounds, a code highlight
 
 ```js
 contract Consensus is MasterCopyUpgradable, ... {
@@ -50,6 +50,108 @@ contract Consensus is MasterCopyUpgradable, ... {
     mapping(CoreI => CoreLifetime) CoreLifetimes;
 
     [...]
+
+    function precommitMetablock(
+        bytes32 _metachainId,
+        bytes32 _metablockHeight,
+        bytes32 _metablockHashPrecommit,
+        address payable _reimbursementReceiver
+    )
+        external
+        reimburseGas(GAS_PRECOMMIT, _reimbursementReceiver)
+        onlyAssignedCore(_metachainId)
+    {
+        uint256 currentHeight = metablockTips[_metachainId];
+        Metablock storage currentMetablock =
+            metablockchains[_metachainId][currentHeight];
+
+        require(
+            currentHeight.add(1) == _metablockHeight,
+            "A precommit must append to the metablockchain."
+        );
+
+        require(
+            currentMetablock.round == MetablockRound.Committed,
+            "Current metablock must be committed."
+        );
+
+        Metablock storage nextMetablock =
+            metablockchains[_metachainId][_metablockHeight];
+
+        assert(nextMetablock.round == MetablockRound.Undefined);
+
+        nextMetablock.metablockHash = _metablockHashPrecommit;
+        nextMetablock.round = MetablockRound.Precomitted;
+        nextMetablock.roundBlockNumber = block.number;
+
+        metablockTips[_metachainId] = _metablockHeight;
+
+        // On first precommit by a core, CoreLifetime state will change to active.
+        if (coreLifetimes[msg.sender] == CoreLifetime.genesis) {
+            coreLifetimes[msg.sender] = CoreLifetime.active;
+        }
+    }
+
+    function formCommittee(
+        bytes32 _metachainId
+        address payable _reimbursementReceiver
+    )
+        external
+        reimburseGas(GAS_FORM_COMMIITEE, _reimbursementReceiver)
+    {
+        uint256 currentHeight = metablockTips[_metachainId];
+        Metablock storage currentMetablock =
+            metablockchains[_metachainId][currentHeight];
+
+        require(
+            currentMetablock.round == MetablockRound.Precommitted,
+            "Assigned core must have precommitted a metablock to form a committee."
+        );
+
+        uint256 committeeFormationHeight = currentMetablock.roundBlockNumber.add(
+                COMMITTEE_FORMATION_DELAY);
+
+        require(
+            block.number > committeeFormationHeight,
+            "Committee formation height has not yet come to pass."
+        );
+
+        bytes32 seed = hashBlockSegments(
+            currentMetablock.metablockHash,
+            committeeFormationHeight);
+
+        committees[currentMetablock.metablockHash] = newCommittee(
+            _metachainId,
+            committeeSize,
+            seed,
+            currentMetablock.metablockHash
+        );
+
+        currentMetablock.round = MetablockRound.CommitteeFormed;
+        currentMetablock.roundBlockNumber = block.number;
+    }
+
+    function enterCommittee(
+        bytes32 _metachainId,
+        address _core,
+        address _validator,
+        address _furtherMember,
+        address payable _reimbursementReceiver
+    )
+        external
+        reimburseGas(GAS_ENTER_COMMITTEE, _reimbursementReceiver)
+    {
+        uint256 currentHeight = metablockTips[_metachainId];
+        Metablock storage currentMetablock =
+            metablockchains[_metachainId][currentHeight];
+
+        require(
+            currentMetablock.round == MetablockRound.CommitteeFormed,
+            "Committee must have been formed to enter a validator."
+        );
+
+        // TODO: check validator at roundBlockNumber
+    }
 }
 ```
 
