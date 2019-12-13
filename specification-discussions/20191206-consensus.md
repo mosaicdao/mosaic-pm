@@ -132,8 +132,9 @@ contract Consensus is MasterCopyUpgradable, ... {
     }
 
     function enterCommittee(
-        bytes32 _metachainId,
-        address _core,
+        bytes32 _committeeMetachainId,
+        address _validatorMetachainId,
+        uint256 _validatorMetablockHeight,
         address _validator,
         address _furtherMember,
         address payable _reimbursementReceiver
@@ -141,16 +142,56 @@ contract Consensus is MasterCopyUpgradable, ... {
         external
         reimburseGas(GAS_ENTER_COMMITTEE, _reimbursementReceiver)
     {
+        require(
+            !reputation.isSlashed(_validator),
+            "Validator is slashed."
+        );
+
         uint256 currentHeight = metablockTips[_metachainId];
-        Metablock storage currentMetablock =
-            metablockchains[_metachainId][currentHeight];
+        Metablock storage currentMetablock = metablockchains[_metachainId][currentHeight];
 
         require(
             currentMetablock.round == MetablockRound.CommitteeFormed,
             "Committee must have been formed to enter a validator."
         );
 
-        // TODO: check validator at roundBlockNumber
+        Metablock storage validatorMetablock = metablockchains[_validatorMetachainId][_validatorMetablockHeight];
+
+        require(
+            validatorMetablock.round == MetablockRound.Committed &&,
+            "Provided metablock for validator must be committed."
+        );
+
+        CoreI core = assignments[_validatorMetachainId];
+        uint256 formationHeight = currentMetablock.roundBlockNumber;
+        uint256 checkValidatorForHeight = 0;
+        if (validatorMetablock.roundBlockNumber >= formationHeight) {
+            Metablock storage validatorParentMetablock =
+                metablockchains[_validatorMetachainId][_validatorMetablockHeight.sub(1)];
+            require(
+                validatorParentMetablock.roundBlockNumber < formationHeight,
+                "Provided metablock must include the committee formation height."
+            );
+            checkValidatorForHeight = _validatorMetablockHeight;
+        } else {
+            childMetablockHeight = _validatorMetablockHeight.add(1);
+            Metablock storage validatorChildMetablock =
+                metablockchains[_validatorMetachainId][childMetablockHeight];
+            require(
+                validatorChildMetablock.round < MetablockRound.Committed &
+                childMetablockHeight == metablockTips[_validatorMetachainId],
+                "Provided metablock must be tip."
+            );
+            checkValidatorForHeight = childMetablockHeight;
+        }
+
+        require(
+            core.isValidator(_validator, checkValidatorForHeight),
+            "Validator must be a validator when committee formed."
+        );
+
+        CommitteeI committee = committees[currentMetablock.metablockHash];
+        committee.enterCommittee(_validator, _furtherMember);
     }
 }
 ```
