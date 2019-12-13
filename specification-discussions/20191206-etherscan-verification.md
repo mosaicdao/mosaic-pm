@@ -12,50 +12,56 @@ Aim of the tool is to automate and verify contracts on Etherscan (mainnet, Ropst
 - GatewayLib
 
 ## Origin contracts to verify per token
-- erc20GatewayOrganization
-- erc20Gateway
+- ERC20GatewayOrganization
+- ERC20Gateway
 - ValueBrandedToken
 
-## Tool to automate etherscan verification
-
-We should create tool/script which should automate verification of contracts on etherscan.
+## Tool to automate contracts verification on etherscan
 
 - Proposed command
     ```bash
-    npm run verify-contract <apiKey> <network> <githubRepoUrl> <byteCode> <contractName> <contractAddress> <contractCreationTxHash>
+    npm run verify-contract <apiKey> <network> <githubRepoUrl> <contractName> <contractAddress> <contractCreationTxHash> <byteCode> <libraryContractConfig>
     ```
-    - <b>apiKey</b>: Etherscan API key.
-    - <b>network</b>: Network where contract was deployed. e.g. "mainnet", "ropsten", "rinkeby", "kovan", "goerli".
-    - <b>GithubRepoUrl</b>: Github exact tag/release contract repository which was used to deploy the contracts.
-    - <b>byteCode</b>: Bytecode which was used to deploy the contracts. 
-    - <b>contractName</b>: Contract which is to be verified on etherscan.
-    - <b>contractAddress</b>: Contract address to verify.
-    - <b>contractCreationTxHash</b>: Contract's creation transaction hash.
+    - <b>apiKey</b>: Etherscan API key
+    - <b>network</b>: Network where contract is deployed. e.g. "mainnet", "ropsten", "rinkeby", "kovan", "goerli"
+    - <b>GithubRepoUrl</b>: Github exact tag/release contract repository which was used to deploy the contracts. Supported repositories:
+        - mosaic-contracts
+        - brandedtoken-contracts
+        - openst-contracts
+    - <b>contractName</b>: Contract which is to be verified on etherscan
+    - <b>contractAddress</b>: Contract address to verify
+    - <b>contractCreationTxHash</b>: Contract's creation transaction hash
+    - <b>byteCode</b>: Bytecode which was used to deploy the contracts. This parameter is optional after `contract compilation` bugs are fixed
+    - <b>libraryContractConfig</b>: It's an optional field. File path which contains verified library contracts details in json format. If library contracts are not verified, they need to be verified first. e.g.
+        ```
+            {
+              "MerklePatriciaProof": "<contractAddress>",
+              "MessageBus": "<contractAddress>"
+          }
+        ```
 
-- Pre-requisite
-    - npm `verify-on-etherscan` should be installed. Checkout [more details] (https://github.com/gnosis/verify-on-etherscan#as-a-cli-utility) about the npm.
-
-- Description
-    - The tool will clone the given github release/tag repository.
-    - run `npm ci`
-    - `npm run compile` needs to run. This will populate compiled contract build files in contract/build directory.
-        
-        BUGs
-        - BrandedTokenContracts:: package.json and MosaicContracts:: package.json is using publisher global truffle version for compilation
-        - Truffle "beta" version is taking latest beta version for compilation
+- Implementation Details
+    - The tool will clone the given github release/tag repository. Supported repositories:
+        - mosaic-contracts
+        - brandedtoken-contracts
+        - openst-contracts
+    - Run `npm ci`
+    - `npm run compile` needs to run. This will populate compiled contract build files in `contract/build` directory. 
+        - Note: Make sure contracts are compiled with exact solc version which was deployed.
     - Update contract/build/<contractName>.json file network section:
     ```json
     "networks": {
-        "3": {
+        "1": {
           "address": "<contractAddress>",
           "transactionHash": "<contractCreationTxHash>",
           "links": {}
         }
     ```
-    For linked library contract address, library contract addresses needs to be specified in the links section. Library contracts should be verified before verifying linked library contract.
+    - To verify contracts which have links to library contracts, library contract addresses needs to be specified in the links section. 
+      Library contracts should be verified before verifying linked library contract. e.g.
     ```json
     "networks": {
-        "3": {
+        "1": {
           "address": "<gatewayContractAddress>",
           "transactionHash": "<gatewayContractCreationTxHash>",
           "links": {
@@ -83,10 +89,15 @@ We should create tool/script which should automate verification of contracts on 
           verbose
         })
     ```
-    
+
 ## Notes
-- Verification of contracts should be done as soon as they are deployed
+
 - Rotate etherscan API key
+- BUG: brandedtoken-contracts and MosaicContracts is using different solc version(not 0.5.0) for contracts compilation.
+   - mosaic-contracts PR: https://github.com/mosaicdao/mosaic-contracts/pull/802
+   - brandedtoken-contracts PR: https://github.com/OpenST/brandedtoken-contracts/pull/181
+- Truffle "beta" version is taking latest beta version for compilation
+- Verification of contracts should be done as soon as they are deployed
 
 ## Chain contracts verification
 
@@ -130,7 +141,7 @@ solc version: v0.5.0+commit.1d4f565a
 
 - EIP20Gateway - Done
     https://etherscan.io/address/0x73ae859256da871afd09bf4d45fd60936b15d8ea
-  compiler version: v0.5.3+commit.10d17f24    
+  compiler version: v0.5.3+commit.10d17f24   
     
 
 
