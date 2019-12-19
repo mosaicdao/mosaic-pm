@@ -17,8 +17,11 @@ Consensus gateway
 ---
 
 ## Overview
-When a new metablock is committed, a new kernel is opened in the `Core`. The opening of the new kernel has to be declared on the origin chain and it has to be confirmed in the auxiliary side. 
-To accomplish this, two new contracts are being introduced here namely `ConsensusGateway` and `ConsensusCogateway`. 
+
+The Consensus gateway establishes a channel for protocol messages to be communicated from the origin chain to a metachain/core, and back.
+
+One specific message occurs when a new metablock is committed. Then a new kernel is opened in the `Core`. The opening of the new kernel has to be declared on the origin chain and it has to be confirmed in the auxiliary side. 
+To accomplish this,  `ConsensusGateway` and `ConsensusCogateway`. 
 These contracts use `MessageBus` for atomically transfer of cryptographically verifiable messages between two chains.
 
 ## Goals
