@@ -1,6 +1,6 @@
 ---
 title: 'Mosaic Hadapsar generations'
-disqus:
+disqus: https://hackmd.io/eFojYP9wR-ehXyQR9BgGwA
 ---
 
 Mosaic Hadapsar Testnet Generations
