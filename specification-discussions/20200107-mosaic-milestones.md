@@ -62,6 +62,10 @@ Therefore in `Gen1-BFT` the MVP is the triple hierarchy of "elaborate mutlisigs"
         - achieve supermaj on reported links
         - achieve supermaj on proposed metablocks
         - achieve supermaj on committee decision
+        
+### (`Gen1-VX`) Validator Experience
+
+This is a new directive I want to give attention to specifically. This can include both trusted parties in Mosaic-0 (permissioned validators) and then building up over testnet generations to Mosaic-1 (open set of permissionless validators). <Topic needs to be fleshed out.>
 
 ## Milestones for Hadapsar Gen2
 
