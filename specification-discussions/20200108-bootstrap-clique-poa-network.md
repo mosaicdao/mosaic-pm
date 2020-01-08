@@ -23,13 +23,15 @@ When a new metachain is created, the initial validators that joined the core (`j
 
 The auxiliary chain can be started using this genesis file. Each validator will start the auxiliary chain locally. The sealer addresses are already provided in the genesis file, so for the block generation to start atleast 51 percent of the sealers should join the POA network.
 
-At this point the auxiliary chain node do not have any information about the peer nodes, so chain will wait for discovery of peer node untill atleast 51% of sealers are connected to the network.
+At this point the auxiliary chain nodes do not have any information about the peer nodes, so chain will wait for discovery of peer node until atleast 51% of sealers are connected to the network.
 
 Each auxiliary chain node that is run by the validators will publish the bootnode endpoints so that it is discoverable by the other nodes and they can join the POA network.
 
-The bootnode endpoints are published in `Consensus` contract by calling `publishEndpoint` function. This function will read the inputs and emit the `EndpointPublished` event. The validators will listen/subscribe to this event and when the event is received the validators can add the published node as peers. 
+The bootnode endpoints are published in `Consensus` contract by calling `publishEndpoint` function. This function will read the inputs and emit the `EndpointPublished` event. The validators will listen/subscribe to this event and when the event is received the validators can add the published node as peers.
 
 The block generations on the auxiliary chain will start, once the 51 percent of auxiliary chain nodes joins the POA network.
+
+Validators should publish public endpoints for the following services: "enode".
 
 
 ## Goals
