@@ -29,7 +29,15 @@ The anchor contract has a cyclical memory layout, overwriting the oldest entries
 Coconsensus has permission to anchor new state roots into the Origin Anchor.
 
 ## Goals
-
+The origin anchor should be able to do the following
+- The origin anchor should store the state roots and its block heights.
+- The origin anchor should store `n` number of latest state roots. The insertion of the latest state root will remove the oldest stored state root.
+- Any contract should be able to do the following
+    - Read the latest state root.
+    - Read the latest block height.
+    - Read the state root for the given block height.
+- Only a coconsensus contract should have permission to add the latest state root.
+- The origin anchor contract should reject the storage root for the block heights that are equal or less than the latest stored block height.
 
 ## Assumptions
 
