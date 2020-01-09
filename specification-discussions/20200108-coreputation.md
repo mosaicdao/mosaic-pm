@@ -35,6 +35,25 @@ Staked validators that violate slashing conditions will be instantly marked as `
 
 ## Goals
 
+The goal of coreputation contract is to achieve the following
+- The coreputation contract will accept the array of validators and reputation as input. This contract will store these values. This can only be called by coconsensus contract.
+- If the validator does not exist in the coreputation contract then the status of the validator is considered as `Undefined`.
+- The coreputation contract should update the status of the validator to `Staked` when the current status of the validator is `Undefined` and the reputation of the validator to be updated is a non-zero value.
+- The coreputation contract should update the status of the validator to `Deregistered` when the current status of the validator is `Staked` and the reputation of the validator to be updated is zero value.
+- The coreputation contract should allow the coconsensus contract to change the status of the validator to `Slashed`.
+- The state change of the validators state can happen as follows
+
+```mermaid
+graph TD;
+    Undefined-->Staked;
+    Staked-->Deregistered;
+    Staked-->Slashed;
+    Deregistered-->Slashed;
+```
+- This contract should provide an interface for other contracts to read the status of the validator
+- This contract should provide an interface for other contracts to read the reputation of the validators
+- This contract should provide an interface for other contracts to check if the validator is active or logged out.
+
 ## Assumptions
 
 ## Out of scope
