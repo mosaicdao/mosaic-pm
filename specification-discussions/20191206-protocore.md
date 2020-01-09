@@ -50,9 +50,25 @@ struct Link {
     bytes32 sourceTransitionHash;
     uint256 forwardVoteCount;
     uint256 rearVoteCount;
-    FinalisationStatus targetFinalisation;
+    CheckpointFinalisationStatus targetFinalisation;
 }
 ```
+
+```js
+enum CheckpointFinalisationStatus
+    Undefined,
+    Registered,
+    Justified,
+    Finalised
+```
+
+Protocore calls on coconsensus when a checkpoint is finalised.
+
+## Preconditions on proposing Link
+
+- `parentVoteMessage` must refer to a link which `targetFinalisationStatus` is at least justified
+- calculate VoteMessageHash, shouldnt already exist
+- 
 
 ## Finalisation status of target checkpoints
 
@@ -65,7 +81,7 @@ struct Link {
 contract Protocore is MasterCopyUpgradable, GenesisProtocore, MosaicVersion, ValidatorSet {
 
 
-
+    // TODO: This can be setup() instead of registerGenesisLink
     function registerGenesisLink()
         external
     {
@@ -73,7 +89,7 @@ contract Protocore is MasterCopyUpgradable, GenesisProtocore, MosaicVersion, Val
     }
 
     function proposeLink(
-        bytes32 _sourceVoteMessageHash,
+        bytes32 _parentVoteMessageHash,
         bytes32 _targetBlockHash,
         uint256 _targetBlockHeight,
         bytes32 _sourceKernelHash,
@@ -100,3 +116,22 @@ contract Protocore is MasterCopyUpgradable, GenesisProtocore, MosaicVersion, Val
 ```
 
 ## ValidatorSet
+
+---
+## meeting 2
+attendees: A G J D S P B
+date 9/1/2020
+
+Pro: base protocore for ProtocoreSelf and OriginObserver
+
+Abhay: 
+- Does ProtoCore has state machine logic like Core state machine(Core status) on origin chain?
+
+Sarvesh:- genesis link: 
+    1. There will be setup function which will initialize geneisis link. Some of the fields will be dummy values like (forward count and rear count will be zero.)
+    
+Task: Specification for defining metachain id, we need to define it for origin chain too.
+    
+Ben: Should the protocore (self) and origin protocore (origin observer) should inherit the validator set? or it can just reference to the coreputation contract to get the core validators ?
+
+Deepesh: Will the protocores for other auxiliary chain will have the same validators sets that are for self protocore ? 
