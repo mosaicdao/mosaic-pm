@@ -1,3 +1,8 @@
+---
+title: 'Protocore'
+disqus: https://hackmd.io/hNL_Co0lQ4Wbn_rpQeCVdQ
+---
+
 # Mosaic Implementation Discussion: Protocore
 
 | version | Last updated | Component          |
@@ -7,7 +12,6 @@
 Meeting date/time: Friday 6 december 2019
 
 Editor: Benjamin Bollen
-Attendees:
 
 ## Contract architecture
 ![](https://i.imgur.com/pxra0Gn.jpg)
