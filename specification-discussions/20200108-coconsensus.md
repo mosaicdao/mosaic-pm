@@ -103,6 +103,12 @@ Kernel{kernelHeight; parent; updatedValidators; updatedReputation; gasTarget}
 ```
 the `kernelHash` can be calculated. In the `ConsensusCogateway` the pair `(kernelHeight, kernelHash)` must be stored; so Coconsensus can query the `kernelHash` for this `kernelHeight` and match with the calculated hash.
 
+Following these checks coconsensus should mark the status of the checkpoint as `Committed`.
+
+Coconsensus must call on `Protocore:openMetablock(uint256 metablockHeight)`, as Protocore must know the current metablock height to 
+
+Coconsensus must iterate over the array of updated validators and call on `Coreputation:upsert(updatedReputation)` and call `Protocore:upsert(updatedReputation)` to "join" or "logout" at the new metablock height. 
+
 #### storing domainseparators
 Coconsensus must be able to hash Kernel and VoteMessage with the domain separator of the `Core` validators' contract on origin. We can provide the domain seperators for Self (and other protocores) metachainId through `CoconsensusGenesis` and have
 ```js
@@ -122,3 +128,7 @@ attendees:
 
 Deepesh: Do we need to track all the finalized checkpoints ? no, we can agressively prune in later generations
 
+
+
+Question Ben fri 10/1/2020:
+`Coreputation:upsertValidator` may just not return an enum; because perhaps we should always just join/logout in protocore to identically mirror the validatorSet of `Core` in `Protocore`; if a validator is slashed, then that doesnt matter because the votes dont count. (This is different from the discussion earlier on Fri 10/1/2020)
