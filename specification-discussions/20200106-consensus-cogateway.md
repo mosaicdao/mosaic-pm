@@ -29,11 +29,103 @@ For these messages, the consensus cogateway is permissioned to read the state ro
 
 Consensus cogateway also has permission to mint, increase supply, decrease the supply of the `utMOST` token on the auxiliary chain.
 
-The following are the types of messages that are communicated to consenses gateway on the origin chain from the consensus cogateway on the auxiliary chain.
+The following are the types of messages that are communicated to consensus gateway on the origin chain from the consensus cogateway on the auxiliary chain.
 - Withdrawal of OST/MOST.
 - Creation of new erc20 gateway.
 
+## User stories for Gen1-DX/Gen1-BFT
+There should be ConsensusCoGateway contract which can facilitate message transfers between origin and auxiliary chains. 
+ 
+1. As a user, it should be possible to confirm open kernel message so that new metablocks can be produced. 
 
+
+2. As a user, it should be possible to prove consensus gateway contract in order to enable storage proof verification.
+
+
+3. As a user, it should be possible to confirm deposit of MOST, declared on consensus gateway, so that consensus cogateway can mint utMOST for the beneficiary.
+
+4. As a user, I should be rewarded to confirm deposit of MOST (in utMOST, default unwrap).
+
+5. As a user, I should be rewarded to confirm open kernel (Out of scope)
+
+6. As a user, I should be able to withdraw utMOST for MOST through consensus cogateway. 
+
+## Tasks
+1. Create consensus cogateway contract with below contract as a base contracts. 
+    1. MessageBus 
+    2. ConsensusGatewayBase
+    3. ERC20GatwayBase
+    4. CoConsensusModule
+ It should also follow proxy pattern. Create a setup function to initialize the contract storage, MessageOutbox and MessageInbox.
+ 
+ ```solidity
+ contract ConsensusCogateway is MasterCopyNonUpgradable, MessageBus, ConsensusGatewayBase, ERC20GatewayBase, CoConsensusModule
+ ```
+ 
+ ```solidity
+     function setup(
+        bytes32 _metachainId,
+        address _coConsensus,
+        ERC20I _utMOST,
+        address _consensusGateway,
+        uint8 _outboxStorageIndex,
+        uint256 _maxStorageRootItems,
+        uint256 _metablockHeight
+    )
+ ```
+ 
+2. Define confirmOpenKernel method, to confirm already declared kernel in consensusGateway. 
+    1. It should validate the kernel height i.e new height must be equal to previous height plus 1. 
+    2. It should increment the nonce of message sender.
+    3. It should store kernel hash 
+    4. It should confirm inbox message by verifing storage proof of consensus gateway using MessageBus.
+```solidity
+function confirmOpenKernel(
+        uint256 _kernelHeight,
+        bytes32 _kernelHash,
+        uint256 _feeGasPrice,
+        uint256 _feeGasLimit,
+        address _sender,
+        uint256 _blockHeight,
+        bytes calldata _rlpParentNodes
+    )
+```
+   
+3. Define method `proveConsensusGateway` to verfiy account proof. It should use MessageInbox for proof verification. 
+```solidity
+    function proveConsensusGateway(
+        uint256 _blockHeight,
+        bytes calldata _rlpAccount,
+        bytes calldata _rlpParentNodes
+    )
+```
+
+4. Define method to confirm MOST deposit on consensus gateway  contract. It should mint reward for facilitator and remaining UTMOST token for beneficiary. 
+ 
+ Reward is defined as 
+```solidity
+    reward = gasPrice * min(gasConsumed, gasLimit)
+```     
+```solidity 
+    function confirmDeposit(
+        uint256 _amount,
+        address payable _beneficiary,
+        uint256 _feeGasPrice,
+        uint256 _feeGasLimit,
+        address _depositor,
+        uint256 _blockHeight,
+        bytes calldata _rlpParentNodes
+    )
+        external
+        returns (bytes32 messageHash_)
+```
+
+5. Define position of message outbox and inbox as a constant so that this information could be used to generate and verify proofs for message transfers. 
+
+```solidity
+    uint8 constant public OUTBOX_OFFSET = uint8(XXX);
+    uint8 constant public INBOX_OFFSET = uint8(XXX);
+```
 
 ## Goals
 The Goal for `ConsensusCogateway` contract is to achieve the following on the auxiliary chain.
@@ -221,3 +313,8 @@ Currently, the following is not in scope. This will be done later
 ---
 ## Meeting notes
 NA
+
+### meeting 2
+date: 10/1/2020
+
+faciliator should be extended with behaviour for ConsensusGateway and ConsensusCogateway.
