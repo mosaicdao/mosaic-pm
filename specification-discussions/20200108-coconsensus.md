@@ -82,7 +82,7 @@ function commitCheckpoint(
     b32 target,
     uint256 sourceBlockNumber, 
     uint256 targetBlockNumber
-    )
+)
 ```
 
 can be called by anyone. Following requirements must pass.
@@ -105,9 +105,11 @@ the `kernelHash` can be calculated. In the `ConsensusCogateway` the pair `(kerne
 
 Following these checks coconsensus should mark the status of the checkpoint as `Committed`.
 
-Coconsensus must call on `Protocore:openMetablock(uint256 metablockHeight)`, as Protocore must know the current metablock height to 
 
-Coconsensus must iterate over the array of updated validators and call on `Coreputation:upsert(updatedReputation)` and call `Protocore:upsert(updatedReputation)` to "join" or "logout" at the new metablock height. 
+Coconsensus must iterate over the array of updated validators and call on `Coreputation:upsert(updatedReputation)` and call `Protocore:upsert(updatedReputation)` to "join" or "logout" at the new metablock height.
+**Coconsensus must mirror this list of updated validators as received, so that core and protocore contain the same validator sets. (correction: coreputation doesnt have to return an action-enum)**
+
+Once all validators have been updated in Coreputation and protocore, the new validator set can be effectuated by calling `Protocore:openMetablock(uint256 metablockHeight, b32 kernelHash)`, as Protocore must know the current metablock height for knowing the current validator set.
 
 #### storing domainseparators
 Coconsensus must be able to hash Kernel and VoteMessage with the domain separator of the `Core` validators' contract on origin. We can provide the domain seperators for Self (and other protocores) metachainId through `CoconsensusGenesis` and have
@@ -118,7 +120,15 @@ OriginProtocore VoteMessages should be hashed with the same domain separator as 
 
 ## User stories for Gen1
 
+(bare bones)
 
+- as a user, I want to call `setup()` which goes over internal functions `setupCoreputation()`, `setupAnchors()`, `setupProtocores()` to setup all contracts from their GenesisContracts.
+
+- as a user I want to call `commitMetablock` when a new metablock in the consensusCogateway has been confirmed
+
+- as a user I want to call `anchorStateRoot` when SelfProtocore has increase the dynasty of Self, such that OriginProcotore finalisations at lower dynasty can be anchored into OriginAnhcor.
+
+- as a Protocore, I want to call `finaliseCheckpoint` when I have finalised a checkpoint.
 ---
 ## Meeting notes
 ### Meeting 1
