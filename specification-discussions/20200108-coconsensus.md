@@ -6,9 +6,9 @@ disqus: https://hackmd.io/6sbnr54gThi2Na5KjiSCxg
 Mosaic Implementation Discussion: Coconsensus
 ===
 
-| version | Last updated | Component          |
-| ------- | ------------ | ------------------ |
-| 0.14    | 08/01/2020    | Coconsensus contract |
+| version | Last updated | Component            |
+| ------- | ------------ | -------------------- |
+| 0.14    | 14/01/2020   | Coconsensus contract |
 
 
 Editor: Benjamin Bollen
@@ -23,6 +23,7 @@ In contrast to `Consensus` (which deals with consensus on metablocks), `Coconsen
 
 ```js
 mapping (metachainId => mapping(blocknumber => Block)) blockchains;
+mapping (metachainId => uint256) blocktips;
 ```
 
 where a `struct Block` tracks the `CheckpointCommitStatus` and the `dynasty` number of the local metachain at which the status update was included in the chain.
@@ -66,7 +67,7 @@ In Gen1 there is only one anchor for the origin chain `OriginAnchor`, stored und
 function finalizeCheckpoint(b32 metachainId, uint256 number, b32 blockhash)
     onlyRunningProtocore(metachainId)
 ```
-can store a new `block` in `blockchains` if the number strictly increases and the `CheckpointCommitStatus` is `Undefined`; status of the block is set to `Finalised` and the current dynasty of `Self` is stored along with it.
+can store a new `block` in `blockchains` if the number strictly increases and the `CheckpointCommitStatus` must be `Undefined`; status of the block is set to `Finalised` and the current dynasty of `Self` is stored along with it.
 
 #### Commit checkpoint
 
@@ -118,17 +119,25 @@ mapping (metachainId => b32) domainSeparators;
 ```
 OriginProtocore VoteMessages should be hashed with the same domain separator as Self, because it concerns the observation by the Core validators of Self. Therefore we want to enforce slashing conditions with a domain separator for this same group of validators.
 
+#### anchor state roots
+
+Finalised checkpoints of SelfProtocore do not need to be anchored in an anchor contract. (There is no point to send messages from Self to Self.)
+
+Finalised checkpoints of OriginProtocore are stored with the current dynasty of Self. `coconsensus:anchorStateRoot(metachainId, number)` must check that the current dynasty of Self is greater than the dynasty stored with the finalised checkpoint of Origin. If so, then we can call on OriginAnchor to store the state root in the contract. (Note that Anchor will revert if the state root was already anchored.)
+
 ## User stories for Gen1
 
 (bare bones)
 
 - as a user, I want to call `setup()` which goes over internal functions `setupCoreputation()`, `setupAnchors()`, `setupProtocores()` to setup all contracts from their GenesisContracts.
 
+- as a Protocore, I want to call `finaliseCheckpoint` when I have finalised a checkpoint.
+
 - as a user I want to call `commitMetablock` when a new metablock in the consensusCogateway has been confirmed
 
-- as a user I want to call `anchorStateRoot` when SelfProtocore has increase the dynasty of Self, such that OriginProcotore finalisations at lower dynasty can be anchored into OriginAnhcor.
+- as a user I want to call `anchorStateRoot(metachaindId, number)` when SelfProtocore has increased the dynasty of Self, such that OriginProcotore finalisations at lower dynasty can be anchored into OriginAnchor.
 
-- as a Protocore, I want to call `finaliseCheckpoint` when I have finalised a checkpoint.
+
 ---
 ## Meeting notes
 ### Meeting 1
@@ -142,3 +151,23 @@ Deepesh: Do we need to track all the finalized checkpoints ? no, we can agressiv
 
 Question Ben fri 10/1/2020:
 `Coreputation:upsertValidator` may just not return an enum; because perhaps we should always just join/logout in protocore to identically mirror the validatorSet of `Core` in `Protocore`; if a validator is slashed, then that doesnt matter because the votes dont count. (This is different from the discussion earlier on Fri 10/1/2020)
+
+## meeting 3
+date: 13/1/2020
+
+note taker: deepesh
+
+- Ben runs over user stories
+- Terms that we use:
+    - block number -> related to blockchain blocks
+    - dynasty -> this is the dynasty related to finalization of blocks (Casper FFG)
+    - height -> This is height of metablock.
+
+- Deepesh: Why do we need mapping to store domainseparators ?
+    - the votes on origin protocore and self protocore will sign with same domain seperators
+    - Currently we will have just one value in the mapping.
+    - Later we may have other protocores (different metachain id)
+- The metachainid will be stored in the mapping in the genesis block.
+- Deepesh: Metachain id for origin protocore ?
+    - in hashmetachain, use the anchor address as 0x00 to get the metachain id for origin protocore.
+    - 
