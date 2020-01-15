@@ -24,14 +24,12 @@ disqus: https://hackmd.io/qF0_wI58QuyDp2k53ylr9A
 
 ## User Stories
 
-- As coconsensus I should be able to add a validator.
-- As coconsensus I should be able to remove a validator.
-- As a user I should be able to ask from the contract if a validator is
-  in set for a given metablock height.
-- As a user I should be able to ask from the contract if a validator is
-  in the forward set for a given metablock height.
-- As a user I should be able to ask from the contract if a validator is
-  in the rear set for a given metablock height.
+- As Core or Protocore, I should be able to insert a validator.
+- As Core or Protocore, I should be able to remove a validator.
+- As a user I should be able to ask from the contract if a validator is in validator set for a given metablock height.
+- As a user I should be able to ask from the contract if a validator is in **forward** validator set for a given metablock height.
+- As a user I should be able to get the `forwardValidatorCount(height)`
+
 
 ## Proposed Implementation
 
@@ -42,6 +40,12 @@ contract ValidatorSet {
     /** Maximum future end height, set for all active validators */
     uint256 public constant MAX_FUTURE_END_HEIGHT = uint256(
         0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
+        
+    /** Sentinel pointer for marking end of linked-list of validators */
+    address public constant SENTINEL_VALIDATORS = address(0x1);
+    
+    /** Linked list of valiators. */
+    mapping(address => address) validators;
 
     /**
      * Validator begin height assigned to this set:
@@ -99,6 +103,12 @@ contract ValidatorSet {
             validatorEndHeight[_validator] > _height &&
             validatorEndHeight[_validator] > 0;
     }
+    
+    function forwardValidatorCount(uint256 _height)
+        public
+        view
+        returns (uint256);
+}
 }
 
 ```
