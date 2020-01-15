@@ -1,13 +1,13 @@
 ---
-title: "Mosaic-1 Graph Service"
+title: "Mosaic Subgraph"
 disqus: "https://hackmd.io/POS1wkpzTuKu5QW8TQJPkQ"
 ---
 
-# Mosaic1 Graph Service
+# Mosaic Subgraph
 
-| version | Last updated | Component              |
-| ------- | ------------ | ---------------------- |
-| 0.14    | 13/01/2020   | Mosaic-1 Graph Service |
+| version | Last updated | Component          |
+| ------- | ------------ | ------------------ |
+| 0.14    | 13/01/2020   | Mosaic-1 subgraphs |
 
 **Editor: Jayesh Bairagi**
 
@@ -15,10 +15,24 @@ disqus: "https://hackmd.io/POS1wkpzTuKu5QW8TQJPkQ"
 
 ## Overview
 
-The Graph Service will be responsible to sync the mainnet and save the required event data for the contracts(Core and the Consensus) to the PostgreSQL. The validator will be able to retrieve all the relevant data through GraphQL queries.
+The Graph Service will be responsible to extract (event) data for the origin chain or a metachain into a PostgreSQL. The validator will be able to subscribe and make GraphQL queries to compose a local view of origin and a set of metachains, needed to operate.
 
-## User Stories
+`Mosaic-origin-subgraph` repository can contain the subgraph for the subgraph on Ethereum (mainnet) and Goerli (Hadapsar testnet).
 
+`Mosaic-metachain-subgraph` repository can contain the (templated) subgraph for any metachain.
+
+## User Stories for Mosaic-origin-subgraph
+(Gen1-BFT)
+- as a validator, I want to access (event) data from
+    - Axiom
+    - Consensus
+    - Reputation
+    - Cores
+    - Committees
+    - Anchors
+    - ConsensusGateways
+    - MOST
+   
 - As the graph I expect
   - The contract addresses of
     - Axiom
@@ -29,3 +43,15 @@ The Graph Service will be responsible to sync the mainnet and save the required 
     - ValidatorJoinedDuringCreation
     - RootOriginObservationBlockHeight
     - EndpointPublished
+
+## User Stories for Mosaic-metachain-subgraph
+(Gen1-BFT)
+- as a validator, I want to access (event) data from
+    - Coconsensus
+    - OriginProtocore
+    - SelfProtocore
+    - OriginObserver
+    - Coreputation
+    - ConsensusCogateway
+    - utMOST
+
