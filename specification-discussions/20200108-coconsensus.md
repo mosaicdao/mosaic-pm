@@ -119,11 +119,19 @@ mapping (metachainId => b32) domainSeparators;
 ```
 OriginProtocore VoteMessages should be hashed with the same domain separator as Self, because it concerns the observation by the Core validators of Self. Therefore we want to enforce slashing conditions with a domain separator for this same group of validators.
 
-#### anchor state roots
+#### observe blocks and anchor state roots
 
-Finalised checkpoints of SelfProtocore do not need to be anchored in an anchor contract. (There is no point to send messages from Self to Self.)
+Finalised checkpoints of SelfProtocore do not need to be anchored in an Observer contract. (There is no point to send messages from Self to Self, or to observe oneself.)
 
-Finalised checkpoints of OriginProtocore are stored with the current dynasty of Self. `coconsensus:anchorStateRoot(metachainId, number)` must check that the current dynasty of Self is greater than the dynasty stored with the finalised checkpoint of Origin. If so, then we can call on OriginAnchor to store the state root in the contract. (Note that Anchor will revert if the state root was already anchored.)
+Finalised checkpoints of OriginProtocore are stored with the current dynasty of Self. The associated state roots of these checkpoints must be anchored into the `OriginObserver is Anchor` for messages to be received from Origin.
+
+The function `coconsensus:observeBlock(metachainId, rlpBlockHeader)` must decode the RLP encoded bytes to extract the block number, and state root.
+
+It must hash the RLP encoded block header bytes and match it against the block hash stored in `blockchains` under `number`. This block must stored as `Finalised`
+
+It must check that the current dynasty of Self is greater than the dynasty stored with the finalised observation checkpoint from OriginProtocore.
+
+If so, then we can call on `OriginObserver:anchorStateRoot` to store the state root in the contract. (Note that it will revert if the state root was already anchored.)
 
 ## User stories for Gen1
 
