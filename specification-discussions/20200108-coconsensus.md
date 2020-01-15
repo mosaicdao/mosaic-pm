@@ -143,7 +143,7 @@ If so, then we can call on `OriginObserver:anchorStateRoot` to store the state r
 
 - as a user I want to call `commitMetablock` when a new metablock in the consensusCogateway has been confirmed
 
-- as a user I want to call `anchorStateRoot(metachaindId, number)` when SelfProtocore has increased the dynasty of Self, such that OriginProcotore finalisations at lower dynasty can be anchored into OriginAnchor.
+- as a user I want to call `observeBlock(metachaindId, rlpBlockHeader)` when SelfProtocore has increased the dynasty of Self, such that OriginProcotore finalisations at lower dynasty can be anchored into OriginObserver.
 
 
 ---
