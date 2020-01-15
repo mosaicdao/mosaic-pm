@@ -35,7 +35,7 @@ disqus: https://hackmd.io/qF0_wI58QuyDp2k53ylr9A
 
 ## Proposed Implementation
 
-```js
+```solidity
 
 contract ValidatorSet {
 
@@ -80,7 +80,7 @@ contract ValidatorSet {
         // ...
     }
 
-    function inValidator(address _validator, uint256 _height)
+    function inValidatorSet(address _validator, uint256 _height)
         public
         view
         returns (bool)
@@ -90,23 +90,13 @@ contract ValidatorSet {
             validatorEndHeight[_validator] > 0;
     }
 
-    function inForwardValidator(address _validator, uint256 _height)
+    function inForwardValidatorSet(address _validator, uint256 _height)
         public
         view
         returns (bool)
     {
         return validatorBeginHeight[_validator] <= _height &&
             validatorEndHeight[_validator] > _height &&
-            validatorEndHeight[_validator] > 0;
-    }
-
-    function inRearValidator(address _validator, uint256 _height)
-        public
-        view
-        returns (bool)
-    {
-        return validatorBeginHeight[_validator] < _height &&
-            validatorEndHeight[_validator] >= _height &&
             validatorEndHeight[_validator] > 0;
     }
 }
