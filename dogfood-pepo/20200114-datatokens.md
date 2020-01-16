@@ -1,6 +1,6 @@
 ---
 title: "Pepo data tokens"
-disqus: https://hackmd.io/6sbnr54gThi2Na5KjiSCxg
+disqus: https://hackmd.io/9VS3xSdxQ_OUViHpbwOIfw
 ---
 
 # Pepo: create videos as data tokens
