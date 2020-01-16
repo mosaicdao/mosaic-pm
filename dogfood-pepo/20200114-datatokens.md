@@ -1,15 +1,13 @@
 ---
-title: 'Pepo data tokens'
+title: "Pepo data tokens"
 disqus: https://hackmd.io/6sbnr54gThi2Na5KjiSCxg
 ---
 
-Pepo: create videos as data tokens
-===
+# Pepo: create videos as data tokens
 
-| version | Last updated | Component          |
-| ------- | ------------ | ------------------ |
-| gen1    | 13/01/2020   | Data tokens        |
-
+| version | Last updated | Component   |
+| ------- | ------------ | ----------- |
+| gen1    | 13/01/2020   | Data tokens |
 
 Editor: Benjamin Bollen
 
@@ -24,6 +22,7 @@ Videos uploaded through the Pepo app can be uploaded on IPFS using an IPLD forma
 A `PepoVideo` data token in the contract can be created by a `host` hosting service (here Pepo app backend) and can initiate ownership transfer from the host to the Pepo user (`TokenHolder`). Currently the user cannot (yet) accept the ownership transfer, but this way the host can already indicate the intended ownership, while still maintaining the ability to update the data token.
 
 ### removing content
+
 Beyond editing metadata of a video, the owner should be able to indicate a desire for the content to no longer be hosted. Honest services can listen to this and stop hosting the IPFS content related to this data token.
 
 The content can be "removed" in this sense, by burning the data token by the owner.
