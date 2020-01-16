@@ -36,8 +36,10 @@ Location: Pune
 
 ### User Stories
 
-- As a pepo dev, I should be able to know all rewards of all videos. (Gen-1) (PepoReward is NDT)
+- As a pepo dev, I should be able to read metadata and relationships/replies of videos. (Gen-1)
+- As a pepo dev, I should be able to know all rewards of all videos. (PepoReward is NDT) (Gen-1)
 - As a pepo dev, I can deploy contracts (interacts) to Goerli (Gen-1)
+- As a pepo dev, I can run simulations (Gen-1)
 - As a pepo dev, I should be able "to know" all pepo videos (Gen-1)
 - As a pepo dev, I should be able to get all pepo videos (Gen-1)
 - As a pepo user, I should be able to own my videos (Gen-2)
