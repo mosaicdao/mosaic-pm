@@ -19,7 +19,7 @@ We can create a Pepo videos contract that inherits EIP-1948. Ownership transfers
 
 Videos uploaded through the Pepo app can be uploaded on IPFS using an IPLD format. The format should allow specifying metadata of the video and the CID of the video itself, append-only to edit, and ability to link to other videos (replies would be the first relationship).
 
-A `PepoVideo` data token in the contract can be created by a `host` hosting service (here Pepo app backend) and can initiate ownership transfer from the host to the Pepo user (`TokenHolder`). Currently the user cannot (yet) accept the ownership transfer, but this way the host can already indicate the intended ownership, while still maintaining the ability to update the data token.
+A `Pepos` data token in the contract can be created by a `host` hosting service (here Pepo app backend) and can initiate ownership transfer from the host to the Pepo user (`TokenHolder`). Currently the user cannot (yet) accept the ownership transfer, but this way the host can already indicate the intended ownership, while still maintaining the ability to update the data token.
 
 ### Removing content
 
@@ -27,12 +27,46 @@ Beyond editing metadata of a video, the owner should be able to indicate a desir
 
 The content can be "removed" in this sense, by burning the data token by the owner.
 
+## Milestones
 
+1. Developer Experience: Make Pepo hackable
+
+Create an environment for developers that garantuees that they have ownership in the Pepo ecosystem: all data, and logic should be decentralised and owned by the Pepo users.
+
+## User Stories
+
+### Gen1-DX
+
+Constraint: Pepo devs should be able to deploy their DApps that interact with real 
+
+- As a pepo dev, I should be able to read metadata and relationships/replies of videos.
+- As a pepo dev, I should be able to know all rewards of all videos. (PepoReward is NDT)
+- As a pepo dev, I can deploy contracts (interacts) to Goerli (Gen-1)
+- As a pepo dev, I can run simulations (Gen-1)
+- As a pepo dev, I should be able "to know" all pepo videos (Gen-1)
+- As a pepo dev, I should be able to get all pepo videos (Gen-1)
+
+## Proposed implementation
+
+```solidity
+contract Pepos is EIP1948 {
+    function initiateOwnershipTransfer(uint256 _tokenId, address _proposedOwner);
+    function confirmOwnershipTransfer(uint256 _tokenId);
+    function burn(uint256)
+}
+```
+
+```solidity
+contract PepoRewards
+```
+
+---
 ## Meeting Notes
 
 Date: 16/01/2020
 
-Location: Pune
+Attendees: Abhay, Gulshan, Jayesh, Deepesh, Pro, Ben
+Note taker: Jayesh, Pro
 
 ### User Stories
 
