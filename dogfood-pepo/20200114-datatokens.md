@@ -7,7 +7,7 @@ disqus: https://hackmd.io/9VS3xSdxQ_OUViHpbwOIfw
 
 | version | Last updated | Component   |
 | ------- | ------------ | ----------- |
-| Gen1    | 13/01/2020   | Data tokens |
+| Gen1    | 17/01/2020   | Data tokens |
 
 **Editor:** Benjamin Bollen
 
@@ -31,33 +31,50 @@ The content can be "removed" in this sense, by burning the data token by the own
 
 1. Developer Experience: Make Pepo hackable
 
-Create an environment for developers that garantuees that they have ownership in the Pepo ecosystem: all data, and logic should be decentralised and owned by the Pepo users.
+Create an environment to encourage developers to build and have ownership in the Pepo ecosystem: data, and logic should be increasingly decentralised and owned by the Pepo users. In the first milestone we want to register also the video data on-chain to open up all hacking on Pepo.
 
 ## User Stories
 
 ### Gen1-DX
 
-Constraint: Pepo devs should be able to deploy their DApps that interact with real 
+Constraint: Pepo devs should be able to deploy their DApps that interact with real Pepo data on Goerli testnet.
+The Pepo app should not yet need to call on new contracts in this generation.
 
-- As a pepo dev, I should be able to read metadata and relationships/replies of videos.
-- As a pepo dev, I should be able to know all rewards of all videos. (PepoReward is NDT)
-- As a pepo dev, I can deploy contracts (interacts) to Goerli (Gen-1)
-- As a pepo dev, I can run simulations (Gen-1)
-- As a pepo dev, I should be able "to know" all pepo videos (Gen-1)
-- As a pepo dev, I should be able to get all pepo videos (Gen-1)
+1. As a pepo dev, I should be able "to know" all pepo videos that are published and the publisher
+1. As a pepo dev, I should be able to get all pepo video data (from IPFS).
+1. As a pepo dev, I should be able to read metadata and relationships/replies of videos.
+1. As a pepo dev, I should be able to know all rewards of all videos.
+1. As a pepo dev, I should be able to deploy my DApp to Goerli and interact with a (replay / live) simulation of mainnet Pepo data.
+
+### GenX-DX
+
+TBD: for the Pepo users to claim ownership of their Pepos on-chain, the Pepo app must sign transaction for new data token
+contracts and other custom token rules. Assuming this constraint is aligned:
+
+- As a pepo user, I should be able to own my videos
+- As a pepo user, I should be able to transfer ownership of my videos
+- As a pepo user, I should be able to "delete" my videos (obeyed by all honest IPFS pinning services)
+
+## Bounty proposals
+
+### Gen1-DX
+-
 
 ## Proposed implementation
 
 ```solidity
 contract Pepos is EIP1948 {
-    function initiateOwnershipTransfer(uint256 _tokenId, address _proposedOwner);
-    function confirmOwnershipTransfer(uint256 _tokenId);
-    function burn(uint256)
+    function registerPepo(bytes32 _pepoCid) returns (uint256 pepoTokenId_);
+    function initiateOwnershipTransfer(uint256 _pepoTokenId, address _proposedOwner);
+    function confirmOwnershipTransfer(uint256 _pepoTokenId);
+    function burn(uint256);
 }
 ```
 
 ```solidity
-contract PepoRewards
+contract PepoRewards is EIP1948 {
+    function registerReward(uint256 _pepoTokenId, bytes32 _txHash) returns (uint256 rewardTokenId_)
+}
 ```
 
 ---
@@ -79,4 +96,3 @@ Note taker: Jayesh, Pro
 - As a pepo user, I should be able to own my videos (Gen-2)
 - As a pepo user, I should be able to transfer ownership of my videos (Gen-2)
 - As a pepo user, I should be able to "delete" my videos (Gen-2)
-
