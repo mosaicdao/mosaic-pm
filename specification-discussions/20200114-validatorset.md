@@ -1,5 +1,5 @@
 ---
-title: 'ValidatorSet'
+title: "ValidatorSet"
 disqus: https://hackmd.io/qF0_wI58QuyDp2k53ylr9A
 ---
 
@@ -21,7 +21,6 @@ disqus: https://hackmd.io/qF0_wI58QuyDp2k53ylr9A
 - upsert(height, rep=0) => logout at height (or do nothing)
 - upsert(height, rep > 0) => do nothing if "known" or join at height
 
-
 ## User Stories
 
 - As Core or Protocore, I should be able to insert a validator.
@@ -29,7 +28,6 @@ disqus: https://hackmd.io/qF0_wI58QuyDp2k53ylr9A
 - As a user I should be able to ask from the contract if a validator is in validator set for a given metablock height.
 - As a user I should be able to ask from the contract if a validator is in **forward** validator set for a given metablock height.
 - As a user I should be able to get the `forwardValidatorCount(height)`
-
 
 ## Proposed Implementation
 
@@ -40,11 +38,11 @@ contract ValidatorSet {
     /** Maximum future end height, set for all active validators */
     uint256 public constant MAX_FUTURE_END_HEIGHT = uint256(
         0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
-        
+
     /** Sentinel pointer for marking end of linked-list of validators */
     address public constant SENTINEL_VALIDATORS = address(0x1);
-    
-    /** Linked list of valiators. */
+
+    /** Linked list of validators. */
     mapping(address => address) validators;
 
     /**
@@ -103,7 +101,7 @@ contract ValidatorSet {
             validatorEndHeight[_validator] > _height &&
             validatorEndHeight[_validator] > 0;
     }
-    
+
     function forwardValidatorCount(uint256 _height)
         public
         view
