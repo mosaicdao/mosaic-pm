@@ -67,7 +67,7 @@ contract Pepos is EIP1948 {
     function registerPepo(bytes32 _pepoCid) returns (uint256 pepoTokenId_);
     function initiateOwnershipTransfer(uint256 _pepoTokenId, address _proposedOwner);
     function confirmOwnershipTransfer(uint256 _pepoTokenId);
-    function burn(uint256);
+    function burn(uint256 _pepoTokenId);
 }
 ```
 
