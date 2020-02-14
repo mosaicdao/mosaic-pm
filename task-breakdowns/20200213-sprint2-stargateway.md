@@ -13,11 +13,11 @@ disqus: https://hackmd.io/nQqBmXPBQauKDrEfo-6eLQ
 ## ERC20Gateway and ERC20Cogateway
 **HackMD document:** [Star Gateway HackMD Document](https://hackmd.io/vs6eBAk7QAK_4gQZbusqag)
 
-1. EIP20Gateway::depositERC20
-1. EIP20CoGateway::withdrawERC20
-1. EIP20Cogateway::confirmDepositERC20
-1. EIP20Gateway::confirmWithdrawERC20
-1. EIP20GatewayBase::proveGateway
+1. ERC20Gateway::depositERC20
+1. ERC20CoGateway::withdrawERC20
+1. ERC20Cogateway::confirmDepositERC20
+1. ERC20Gateway::confirmWithdrawERC20
+1. ERC20GatewayBase::proveGateway
 1. Implement integration test for deposit flow
 1. Implement integration test for withdraw flow
 1. Generate interacts and publish npm
@@ -28,43 +28,48 @@ disqus: https://hackmd.io/nQqBmXPBQauKDrEfo-6eLQ
 
 Facilitator manifest:
 ```yaml=
-chain: 
-    auxiliary: 
-      worker: "",
-      node_endpoint: "",
-      graph_ws_endpoint:"",
-      graph_rpc_endpoint:""
-   origin: 
-      worker: "",
-      node_endpoint: "",
-      graph_ws_endpoint:"",
-      graph_rpc_endpoint:""
-accounts: 
-    "0xac7E36b3cdDb14Bf1c67dC21fFB24C73d03d8FF7": 
-        keystore_path: ""
+version: "v0.14",
+personas:
+    m0_facilitator=false,
+    m1_facilitator=true
+chain: // section for m0 utility chains
+metachain: // section metachains for m1
+    auxiliary:
+        avatar_account: "",
+        node_endpoint: "",
+        graph_ws_endpoint: "",
+        graph_rpc_endpoint: ""
+    origin:
+        avatar_account: "",
+        node_endpoint: "",
+        graph_ws_endpoint: "",
+        graph_rpc_endpoint: ""
+accounts:
+    "0xac7E36b3cdDb14Bf1c67dC21fFB24C73d03d8FF7":
+        keystore_path: "",
         keystore_password_path: ""
-contract_address:
-    gateway: ""
-supported_tokens:
+origin_contract_addresses:
+    erc20_gateway: ""
+facilitate_tokens:
     - 0xA
     - 0xB
 ```
 
-Notes: 
+Notes:
 
-1. Restructure repository to support multiple modes
+1. Restructure repository to support different personas (don't define modes, it s an unneeded abstraction, be explicit about which personas to run in manifest)
 
 2. Define facilitator manifest
- 
+
 3. Implement facilitator manifest schema
 
-4. Facilitator init: 
-    1. default mode will be star gateway facilitator, `--mode` option can be used to switch back to `m0` facilitator
+4. Facilitator init:
+    1. default mode will be star gateway facilitator; optionally `--persona m0_facilitator=true` option can be used to toggle personas on or off;
     2. password will be taken from file
     3. keystore will be generated.
     4. command should provide instruction to backup, fund keys and file path
     5. Populate db path
-    6. Populate seed data 
+    6. Populate seed data
 
 ```bash=
 facilitator init \
@@ -78,18 +83,18 @@ facilitator init \
     --origin-password-file origin_password_file \
     --aux-password-file aux_password_file \
     --output-path path_of_manifest
-    --supported-tokens 0xA,0xB
+    --facilitate-tokens 0xA,0xB
 ```
 
-5. Facilitator start: Default mode will be star gateway facilitator, there will be option `--mode` to switch back to gen0 facilitator. 
+5. Facilitator start: Default will be star gateway facilitator.
 
 ```
 facilitator start manifest.yaml
 ```
 
 6. Gracefully stop facilitator
-   
-### Models & Repositories 
+
+### Models & Repositories
 
 - Implement DepositIntent model and DepositIntent repository.
 - Implement WithdrawIntent model and WithdrawIntent repository.
@@ -98,14 +103,14 @@ facilitator start manifest.yaml
 - Implement Message model and Message repository.
 - Implement ContractEntity model and ContractEntity repository.
 
-### Services 
+### Services
 
 - Implement ConfirmDeposit service
 - Implement ConfirmWithdraw service
 - Implement ProveGateway service
 
-  
-### Entity Handlers 
+
+### Entity Handlers
 
 - Implement DeclaredDepositIntent handler
 - Implement ConfirmedDepositIntent handler
@@ -116,16 +121,15 @@ facilitator start manifest.yaml
 
 ### Integration Tests
 
-- Implement integration test for deposit flow for EIP20token
-- Implement integration test for withdraw flow for EIP20token
-    
-### Facilitator Other Tasks 
+- Implement integration test for deposit flow for ERC20token
+- Implement integration test for withdraw flow for ERC20token
 
-- Implement Avatar transaction executor
-- Script to periodically fund avatars
+### Facilitator Other Tasks
+
+- Implement ERC20GatewayAvatar
 - Readme update
 
-### Implement System Test 
+### Implement System Test
 Reference: https://github.com/mosaicdao/facilitator/issues/206
 
 ### Demo scripts
@@ -140,7 +144,7 @@ Reference: https://github.com/mosaicdao/facilitator/issues/206
 
 1.  Define all the entities in schema.graphql
 
-2. Define handlers 
+2. Define handlers
     - in mapping for ERC20Gateway i.e DeclaredDepositIntent, ConfirmedWithdrawIntent(https://github.com/mosaicdao/mosaic-chains/blob/develop/graph/origin/src/EIP20GatewayMapping.ts#L28)
     - in mapping for ERC20Cogateway i.e. CreatedUtilityToken, ProvenGateway, ConfirmedDepositIntent, DeclaredWithdrawIntent. Also, for anchors.
     - Add custom fields for entities in ERC20GatewaySchema and ERC20CogatewaySchema, AnchorSchema.
@@ -185,14 +189,14 @@ Placeholder for mosaic subgraph?
     - `ConsensusCogateway::DepositConfirmed`.
     - `ConsensusCogateway::Withdrawn`.
     - `ConsensusGateway::WithdrawalConfirmed`.
-    
+
 - Implement `ConsensusGateway:: genesisDeposit`
     - This function will be called by the validator to deposit OST before the core is opened (metachain is created)
     - Emit `GenesisDeposited` event.
-    
+
 - Update test cases for SelfProtocore::upsertValidator
-  - Add test cases to check more edge cases covering combinations of 
-    - validator, 
+  - Add test cases to check more edge cases covering combinations of
+    - validator,
     - different values of height,
     - and, different values of reputation
     - Ref: https://github.com/mosaicdao/mosaic-1/pull/230#discussion_r373202738
@@ -206,7 +210,7 @@ Placeholder for mosaic subgraph?
   - Implement `setup` function
   - `ConsensusCogateway` contract should inherit `GenesisConsensusCogateway` contract
   - Update the setup function of `ConsensusCogateway` contact.
-    
+
 - Update Coconsensus::setup
   - `Coconsensus::setup` will call `Utmost::setup` and `ConsensusCogateway::setup`
 
@@ -236,7 +240,7 @@ Placeholder for mosaic subgraph?
   - and others
 
 - Have a general setup check implemented in CoconsensuModule and Coconsensus for every external function
-  - This will ensure that the functions are not being called until the setup is done. 
+  - This will ensure that the functions are not being called until the setup is done.
 
 - Update Utmost implementation:
     - Remove UtilityToken dependencies form Utmost
@@ -249,28 +253,28 @@ Placeholder for mosaic subgraph?
         - The mint function in the utmost can only be called by `ConsensusCogateway` address.
         - The `mint external` function should not emit `Transfer` event as its already handled in the `_mint internal` function of ERC20Token..
         - The `mint`, `burn` and `burnFrom` functions must not return `boolean` value.
-  
+
 - Fix the unit test cases for `Committee::proposalAccepted`
     - Fix the skipped unit tests in `test/committee/proposal_accepted.js`.
-    - Implement the missing unit tests. 
+    - Implement the missing unit tests.
 - Fix the unit test cases for `ConsensusGatewayBase::hashKernelIntent`
     - Fix the skipped unit tests in `test/consensus-gateway/hash_kernel_intent.js`.
-    - Implement the missing unit tests. 
+    - Implement the missing unit tests.
 - Fix the unit test cases for `Consensus::commitMetablock`
     - Fix the skipped unit tests in `test/consensus/commit_metablock.js`.
-    - Implement the missing unit tests. 
+    - Implement the missing unit tests.
 
 - Fix the unit test cases for `Consensus::enterCommittee`
     - Fix the skipped unit tests in `test/consensus/enter_committee.js`.
-    - Implement the missing unit tests. 
+    - Implement the missing unit tests.
 
 - Fix the unit test cases for `Consensus::formCommittee`
     - Fix the skipped unit tests in `test/consensus/form_committee.js`.
-    - Implement the missing unit tests. 
+    - Implement the missing unit tests.
 
 - Fix the unit test cases for `Consensus::setup`
     - Fix the skipped unit tests in `test/consensus/setup.js`.
-    - Implement the missing unit tests. 
+    - Implement the missing unit tests.
 
 - Fix the unit test cases for `Consensus::precommitMetablock`
     - Fix the skipped unit tests in `test/consensus/precommit_metablock.js`.
@@ -301,7 +305,7 @@ Placeholder for mosaic subgraph?
       - anchorGA
       - mosaic version
       - consensus global address
-  
+
 1. Implement Core model and CoreRepository
     - The `Core` model will have following attributes:
       - metachain id
@@ -402,7 +406,7 @@ Placeholder for mosaic subgraph?
        - CoreSealInclusion
          - Unknown
          - Included
-         - Rejected 
+         - Rejected
        - ProtocoreSealInclusion
          - Unknown
          - Included
@@ -421,7 +425,7 @@ Placeholder for mosaic subgraph?
         - Most
         - erc20
       - Remote gateway last proven block number
-      - AnchorGA 
+      - AnchorGA
 
 1. Implement DepositIntent model and DepositRepository
     - The `DepositIntent` model will have following attributes:
@@ -540,9 +544,9 @@ Placeholder for mosaic subgraph?
 
 1. Implement `Axiom::CreatedMetachain`.
     - Updates `Metachain` and `Gateway` models.
-1. Implement `Consensus::CreatedCore`. 
+1. Implement `Consensus::CreatedCore`.
     - Updates `Core` model.
-1. Implement `Consensus::UpdatedCoreLifetime`. 
+1. Implement `Consensus::UpdatedCoreLifetime`.
     - Updates `Core` model.
 1. Implement `Core::UpdatedCoreStatus`.
     - Updates `Core` model.
@@ -553,16 +557,16 @@ Placeholder for mosaic subgraph?
 #### Self Link cycle
 
 1. Implement `SelfProtocore::ProposedLink`.
-    - Update event `LinkProposed` to `ProposedSelfLink` 
+    - Update event `LinkProposed` to `ProposedSelfLink`
     - Updates `Link` and `TransitionObject` models.
-    - `relativeSelfDynasty` will be set to `-1` for now. 
+    - `relativeSelfDynasty` will be set to `-1` for now.
 
 #### Origin Link cycle
 
 1. Implement `OriginProtocore::ProposedLink`.
-    - Update event `LinkProposed` to `ProposedOriginLink` 
+    - Update event `LinkProposed` to `ProposedOriginLink`
     - Updates `Link` model.
-    - `relativeSelfDynasty` will be set to `-1` for now. 
+    - `relativeSelfDynasty` will be set to `-1` for now.
 
 #### Link cycle
 
@@ -660,7 +664,7 @@ Placeholder for mosaic subgraph?
 #### GenesisDeposit lifecycle
 
 1. Implement `ConsensusGateway::GenesisDeposited`.
-    - Updates `Genesis`, `DepositIntent` and `Message` models. 
+    - Updates `Genesis`, `DepositIntent` and `Message` models.
     (note: SourceStatus and TargetStatus are both instantaneously`Declared`)
 
 ## Validator services
@@ -714,5 +718,3 @@ Placeholder for mosaic subgraph?
 1. Implement CalculateMembers method/utility class
 1. Implement Library to interact with Kubernetes
    <b>Question:</b> Should this be a service?
-   
-   
