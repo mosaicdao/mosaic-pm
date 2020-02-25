@@ -1,5 +1,5 @@
 ---
-id: doc1
+id: hadapsar-testnet-developer-experience
 title: Hadapsar Testnet - Developer Experience
 sidebar_label: Developer Experience
 ---
