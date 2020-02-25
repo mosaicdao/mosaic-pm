@@ -17,17 +17,21 @@ Explorer helps in tracking the origin chain and the metachain. Transaction speci
 #### Faucet
 
 Gas is required to perform the transaction of depositing ERC20 token on the origin chain. You can fund your origin chain account using the faucet.
+
 - Link for origin chain faucet:
 
 Gas is also required to deploy the DApp contracts, perform transfers, perform withdraw and other chain related tasks on the metachain. You can fund your metachain account using the provided faucet.
+
 - Link for metachain faucet(TODO: metachain explorer link can be added to our faucet):
 
 #### Connect to Hadapsar testnet
 
 You will require the RPC URL to connect to the origin chain to perform the transaction and interact with the gateway contracts
+
 - RPC URL for origin chain: https://rpc.mosaicdao.org/goerli
 
 You will also require the RPC URL to connect to the metachain to deploy the DApp contracts, perform transfers, perform transfers, provide support for blockchain interaction within DApp for the users, and other chain related tasks on the metachain.
+
 - RPC URL for metachain: https://chain.mosaicdao.org/hadapsar
 
 #### Deposit ERC20 tokens on origin chain
@@ -35,22 +39,24 @@ You will also require the RPC URL to connect to the metachain to deploy the DApp
 ```
 TODO:
 - List of all the registered tokens(addresses)
-- Gateway contract address, and other required missing config/envs 
+- Gateway contract address, and other required missing config/envs
 ```
 
 For depositing ERC20 tokens on the origin chain
 
 - Node script
+
   - Install npm package dependencies
     ```sh
     npm install --save web3 ethereumjs-tx
     ```
   - Create `deposit.js` script as,
     **Note:** Identify missing parameters and improve script after testing(TODO)
+
     ```js
     const Web3 = require('web3');
     const Tx = require('ethereumjs-tx');
-    
+
     const erc20GatewayContractABI = <CONTRACT_ABI(DEPOSIT_FUNCTION)_ON_ORIGIN>;
     const erc20GatewayContractAddress = <CONTRACT_ADDRESS_ON_ORIGIN>;
 
@@ -97,6 +103,7 @@ For depositing ERC20 tokens on the origin chain
           .catch(console.error);
       });
     ```
+
   - Run using,
     ```sh
     node deposit.js
@@ -105,6 +112,7 @@ For depositing ERC20 tokens on the origin chain
 - SDK (TODO)
 
   - Create a config(config.js)
+
   ```js
   module.exports = {
     ORIGIN_CHAIN_RPC_URL: '',
@@ -115,16 +123,17 @@ For depositing ERC20 tokens on the origin chain
     ...
   }
   ```
-  
+
   - Create `deposit.js`
+
   ```js
   const Mosaic = require('mosaic-sdk');
   const config = require('./config');
-  
+
   const mosaic = new Mosaic({
     ...
   });
-  
+
   mosaic.deposit(
     ...
   )
@@ -141,72 +150,83 @@ For depositing ERC20 tokens on the origin chain
 - Using Metamask and remix solidity browser
   1. Connect Metamask to the Hadapsar chain using [link](https://hackmd.io/QAY3itsfQzGSibKtN-GGdA?view#Connect-metamask-to-the-G%C3%B6erli-chain0)
   2. Open [remix solidity browser](https://remix.ethereum.org/)
-  ![](https://i.imgur.com/DFi97Nm.png)
+     ![](https://i.imgur.com/DFi97Nm.png)
   3. Activate the modules for remix solidity browser
-  ![](https://i.imgur.com/ofmU0zt.png)
-  4. Provide permission to metamsak to connect it to the Remix ethereum IDE
-  ![](https://i.imgur.com/2Ot3ZlJ.png)
+     ![](https://i.imgur.com/ofmU0zt.png)
+  4. Provide permission to metamask to connect it to the Remix ethereum IDE
+     ![](https://i.imgur.com/2Ot3ZlJ.png)
   5. Compile the DApp contract
-  ![](https://i.imgur.com/jmwWpOc.png)
+     ![](https://i.imgur.com/jmwWpOc.png)
   6. Add the DApp contract
-  ![](https://i.imgur.com/WuqJ0TH.png)
+     ![](https://i.imgur.com/WuqJ0TH.png)
   7. Deploy the contracts
-      - Get the deployed contract addresses and add them to your DApp for interaction
-      
+     - Get the deployed contract addresses and add them to your DApp for interaction
 
-- Using truffle package
+* Using truffle package
+
   1. Install truffle and truffle-hdwallet-provider packages as dependency to your node application
-    ```sh
-    npm install --save truffle truffle-hdwallet-provider
-    ```
+
+  ```sh
+  npm install --save truffle truffle-hdwallet-provider
+  ```
+
   2. Update `truffle-config.js` by adding the `hadapsar` network config and also add your 12 word mnemonic,
-    ```js
-    const HDWalletProvider = require('truffle-hdwallet-provider');
-    const mnemonic = <PASTE YOUR 12 WORDS MNEMONIC HERE>;
-    const metachainRpc = 'https://chain.mosaicdao.org/hadapsar';
-    
-    module.exports = {
-      networks: {
-        hapadsar: {
-          provider: function() {
-            return new HDWalletProvider(
-              mnemonic,
-              metachainRpc
-            )
-          },
-          network_id: <TODO>,
-          gas: <TODO>,
-          gasPrice: <TODO>
-        }
+
+  ```js
+  const HDWalletProvider = require('truffle-hdwallet-provider');
+  const mnemonic = <PASTE YOUR 12 WORDS MNEMONIC HERE>;
+  const metachainRpc = 'https://chain.mosaicdao.org/hadapsar';
+
+  module.exports = {
+    networks: {
+      hapadsar: {
+        provider: function() {
+          return new HDWalletProvider(
+            mnemonic,
+            metachainRpc
+          )
+        },
+        network_id: <TODO>,
+        gas: <TODO>,
+        gasPrice: <TODO>
       }
-    };
-    ```
+    }
+  };
+  ```
+
   3. Compile the contracts
-    ```sh
-    ./node_modules/.bin/truffle compile
-    ```
+
+  ```sh
+  ./node_modules/.bin/truffle compile
+  ```
+
   4. Deploy the contracts
-    ```sh
-    ./node_modules/.bin/truffle migrate --network hapadsar
-    ```
-    **Note**:
-    - Do not forget to add the mnemonic to the truffle config.
-    - The address at the first HD path to the mnemonic must have sufficient gas required for deployment.
-    - The deployed contract addresses from the logs or build, update the DApp to reference the deployed contract addresses.
+
+  ```sh
+  ./node_modules/.bin/truffle migrate --network hapadsar
+  ```
+
+  **Note**:
+
+  - Do not forget to add the mnemonic to the truffle config.
+  - The address at the first HD path to the mnemonic must have sufficient gas required for deployment.
+  - The deployed contract addresses from the logs or build, update the DApp to reference the deployed contract addresses.
 
 #### Withdraw ERC20 tokens from metachain
 
 - Node script
+
   - Install npm package dependencies
     ```sh
     npm install --save web3 ethereumjs-tx
     ```
   - Create `deposit.js` script by adding your account address, private key, and the utility token address on the metachain,
     **Note:** Identify missing parameters and improve script after testing(TODO)
+
     ```js
     const Web3 = require('web3');
     const Tx = require('ethereumjs-tx');
-    
+
     const erc20CogatewayContractABI = <CONTRACT_ABI(WITHDRAW_FUNCTION)_ON_HADAPSAR_TESTNET>;
     const erc20CogatewayContractAddress = <CONTRACT_ADDRESS_ON_HADAPSAR_TESTNET>;
 
@@ -257,6 +277,7 @@ For depositing ERC20 tokens on the origin chain
 - SDK (TODO)
 
   - Create a config(config.js)
+
   ```js
   module.exports = {
     ORIGIN_CHAIN_RPC_URL: '',
@@ -267,16 +288,17 @@ For depositing ERC20 tokens on the origin chain
     ...
   }
   ```
-  
+
   - Create `withdraw.js`
+
   ```js
   const Mosaic = require('mosaic-sdk');
   const config = require('./config');
-  
+
   const mosaic = new Mosaic({
     ...
   });
-  
+
   mosaic.withdraw(
     ...
   )
@@ -289,30 +311,29 @@ For depositing ERC20 tokens on the origin chain
 #### Explorer
 
 - Link to Origin chain explorer:
-- Link to Metahain explorer:
+- Link to Metachain explorer:
 
 ### Connect metamask to the Origin chain
 
 1. Download metamask browser extension
-![](https://i.imgur.com/oHP7xjZ.png)
+   ![](https://i.imgur.com/oHP7xjZ.png)
 
-2. Login to your metamask browser extension 
-![](https://i.imgur.com/8Zpvbg2.png)
+2. Login to your metamask browser extension
+   ![](https://i.imgur.com/8Zpvbg2.png)
 
 3. Go to the network tab and add RPC url for Origin chain
-![](https://i.imgur.com/U1lsBhd.png)
-
+   ![](https://i.imgur.com/U1lsBhd.png)
 
 ### Connect metamask to the Metachain
 
 1. Download metamask browser extension
-![](https://i.imgur.com/oHP7xjZ.png)
+   ![](https://i.imgur.com/oHP7xjZ.png)
 
-2. Login to your metamask browser extension 
-![](https://i.imgur.com/8Zpvbg2.png)
+2. Login to your metamask browser extension
+   ![](https://i.imgur.com/8Zpvbg2.png)
 
 3. Go to the network tab and add RPC url for metachain
-![](https://i.imgur.com/U1lsBhd.png)
+   ![](https://i.imgur.com/U1lsBhd.png)
 
 ### SDK reference
 
