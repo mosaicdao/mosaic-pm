@@ -7,7 +7,7 @@ sidebar_label: Deploy DApp contracts on metachain
 
 ## Using Metamask and remix solidity browser
 
-1. Connect Metamask to the Hadapsar chain using [link](https://hackmd.io/QAY3itsfQzGSibKtN-GGdA?view#Connect-metamask-to-the-G%C3%B6erli-chain0)
+1. Connect Metamask to the Hadapsar chain using [link](metamask.md)
 2. Open [remix solidity browser](https://remix.ethereum.org/)
    ![](https://i.imgur.com/DFi97Nm.png)
 3. Activate the modules for remix solidity browser
