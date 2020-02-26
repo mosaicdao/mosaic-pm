@@ -1,9 +1,8 @@
 ---
 id: metamask
+title: Connect metamask to chains
 sidebar_label: Connect metamask to chains
 ---
-
-# Connect metamask to chains
 
 ## Connect metamask to the Origin chain
 

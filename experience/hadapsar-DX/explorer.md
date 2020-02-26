@@ -1,9 +1,8 @@
 ---
 id: explorer
+title: Blockchain Explorer
 sidebar_label: Blockchain Explorer
 ---
-
-# Blockchain Explorer
 
 # Origin chain
 

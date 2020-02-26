@@ -1,9 +1,8 @@
 ---
 id: connect
+title: Connect to Hadapsar testnet
 sidebar_label: Connect to Hadapsar testnet
 ---
-
-# Connect to Hadapsar testnet
 
 You will require the RPC URL to connect to the origin chain to perform the transaction and interact with the gateway contracts
 

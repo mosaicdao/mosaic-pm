@@ -1,9 +1,8 @@
 ---
 id: home
+title: Home
 sidebar_label: Home
 ---
-
-# Home
 
 ![](https://i.imgur.com/xXswcoE.png)
 

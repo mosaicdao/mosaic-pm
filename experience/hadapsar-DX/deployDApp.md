@@ -1,9 +1,8 @@
 ---
 id: deploy
+title: Deploy DApp contracts on metachain
 sidebar_label: Deploy DApp contracts on metachain
 ---
-
-# Deploy DApp contracts on metachain
 
 ## Using Metamask and remix solidity browser
 
@@ -33,7 +32,7 @@ npm install --save truffle truffle-hdwallet-provider
 
 ```js
 const HDWalletProvider = require('truffle-hdwallet-provider');
-const mnemonic = <PASTE YOUR 12 WORDS MNEMONIC HERE>;
+const mnemonic = PASTE_YOUR_12_WORDS_MNEMONIC_HERE;
 const metachainRpc = 'https://chain.mosaicdao.org/hadapsar';
 
 module.exports = {
@@ -45,9 +44,9 @@ module.exports = {
           metachainRpc
         )
       },
-      network_id: <TODO>,
-      gas: <TODO>,
-      gasPrice: <TODO>
+      network_id: TODO,
+      gas: TODO,
+      gasPrice: TODO
     }
   }
 };
